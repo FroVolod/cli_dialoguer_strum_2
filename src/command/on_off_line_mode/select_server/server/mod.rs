@@ -38,25 +38,10 @@ pub struct Server {
     // pub transaction_subcommand: ActionSubcommand
 }
 
-// impl Default for Server {
-//     fn default() -> Self {
-//         Server{
-//             url: "".to_string(),
-//             send_from: SendFrom::send_from()
-//             }
-//     } 
-// }
-
 #[derive(Debug, StructOpt)]
 pub enum SendFrom {
     sender(Sender)
 }
-
-// impl Default for SendFrom {
-//     fn default() -> Self {
-//         SendFrom::send_from()
-//     }
-// }
 
 #[derive(Debug, StructOpt)]
 pub struct CliServer {
@@ -121,11 +106,10 @@ impl CliCustomServer {
 
 impl From<CliSendFrom> for SendFrom {
     fn from(item: CliSendFrom) -> Self {
-        
+        println!("   **********     From<CliSendFrom> for SendFrom      *********  item: {:?}", item);
         match item {
             CliSendFrom::sender(cli_sender) => {
                 let sender: Sender = Sender::from(cli_sender);
-                
                 SendFrom::sender(sender)
             },
             _ => unreachable!("Error")
@@ -135,11 +119,13 @@ impl From<CliSendFrom> for SendFrom {
 
 impl SendFrom {
     pub fn send_from() -> Self {
-        let account_id : String = Input::new()
-            .with_prompt("What is the account ID of the sender?")
-            .interact_text()
-            .unwrap();
-        SendFrom::sender(Sender { account_id })
+        println!("-------------   fn send_from() --------------");
+        let account_id : String = Sender::input_account_id();
+        let auth: Authentication = Authentication::choose_authentication();
+        SendFrom::sender(Sender {
+            account_id,
+            auth
+        })
     }
 }
 
