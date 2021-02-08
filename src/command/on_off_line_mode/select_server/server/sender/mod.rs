@@ -36,7 +36,7 @@ pub struct CliSender {
 #[derive(Debug, StructOpt)]
 pub enum CliAuthentication {
     private_key(CliSignKey),
-    alternativ(CliSignAlternative)
+    alternative(CliSignAlternative)
 }
 
 #[derive(Debug,  StructOpt)]
@@ -58,7 +58,7 @@ impl Sender {
 #[derive(Debug, StructOpt)]
 pub enum Authentication {
     private_key(SignKey),
-    alternativ(SignAlternative)
+    alternative(SignAlternative)
 }
 
 impl From<CliSender> for Sender {
@@ -68,7 +68,10 @@ impl From<CliSender> for Sender {
             Some(cli_account_id) => cli_account_id,
             None => Sender::input_account_id()
         };
-        let auth: Authentication = Authentication::choose_authentication();
+        let auth: Authentication = match item.auth {
+            Some(cli_auth) => Authentication::from(cli_auth),
+            None => Authentication::choose_authentication()
+        }; 
         Sender {
             account_id,
             auth
@@ -78,11 +81,31 @@ impl From<CliSender> for Sender {
 
 impl Authentication {
     pub fn choose_authentication() -> Self {// реализовать функцию
-        Authentication::private_key(SignKey{
-            private_key: "private key".to_string(),
-            public_key: "public key".to_string(),
-            send_to: SendTo::send_to()
-        })    
+
+        println!("Works Authentication!");
+        let authentication_options = vec![
+            "Yes, I want to sign the transaction with my private key",
+            "No, I want to construct the transaction and sign it somewhere else",
+        ];
+        let select_authentication_options = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Would you like to sign the transaction?")
+            .items(&authentication_options)
+            .default(0)
+            .interact_on_opt(&Term::stderr())
+            .unwrap();
+        // let send_from = SendFrom::send_from();
+        match select_authentication_options {
+            Some(0) => Authentication::private_key(SignKey {
+                private_key: SignKey::input_private_key(),
+                public_key: SignKey::input_public_key(),
+                send_to: SendTo::send_to()
+            }),
+            Some(1) => Authentication::alternative(SignAlternative {
+                key_chain: SignAlternative::input_key_chain(),
+                send_to: SendTo::send_to()
+            }),
+            _ => unreachable!("Error")
+        }
     }
 }
 
@@ -93,9 +116,9 @@ impl From<CliAuthentication> for Authentication {
                 let sign_key = SignKey::from(cli_sign_key);
                 Authentication::private_key(sign_key)
             },
-            CliAuthentication::alternativ(cli_sign_alternative) => {
+            CliAuthentication::alternative(cli_sign_alternative) => {
                 let sign_alternative = SignAlternative::from(cli_sign_alternative);
-                Authentication::alternativ(sign_alternative)
+                Authentication::alternative(sign_alternative)
             },
         }
     }

@@ -49,9 +49,9 @@ pub enum CliSendTo {
 
 #[derive(Debug, StructOpt)]
 pub struct SignAlternative {
-    key_chain: String,
+    pub key_chain: String,
     #[structopt(subcommand)]
-    send_to: SendTo
+    pub send_to: SendTo
 }
 
 #[derive(Debug, StructOpt)]
@@ -112,6 +112,7 @@ impl SignAlternative {
 
 impl From<CliSignAlternative> for SignAlternative {
     fn from(item: CliSignAlternative) -> Self {
+        println!("***********.  cli sign alternative {:?}", &item);
         let key_chain: String = match item.key_chain {
             Some(cli_key_chain) => cli_key_chain,
             None => SignAlternative::input_key_chain()
