@@ -87,7 +87,7 @@ impl SelectServer {
                             url: BETANET_API_SERVER_URL.to_string(),
                             send_from
                         }),
-            Some(4) => SelectServer::Custom(Server{
+            Some(3) => SelectServer::Custom(Server{
                             url: {
                                 Input::new()
                                 .with_prompt("What is the RPC endpoint?")
