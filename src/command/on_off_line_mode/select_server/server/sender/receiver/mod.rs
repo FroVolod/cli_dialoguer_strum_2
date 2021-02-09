@@ -25,6 +25,11 @@ use skip_type::{
     Skip,
     CliSkip
 };
+mod create_account_type;
+use create_account_type::{
+    CreateAccount,
+    CliCreateAccount
+};
 
 
 
@@ -38,12 +43,12 @@ pub struct Receiver {
 #[derive(Debug, EnumVariantNames, StructOpt)]
 pub enum ActionSubcommand {
     TransferNEARTokens(TransferNEARTokens),
-    // CallFunction,
-    // StakeNEARTokens,
-    // CreateAccount,
-    // DeleteAccount,
-    // AddAccessKey,
-    // DeteteAccessKey,
+    CallFunction,
+    StakeNEARTokens,
+    CreateAccount(CreateAccount),
+    DeleteAccount,
+    AddAccessKey,
+    DeteteAccessKey,
     Skip(Skip)
 }
 
@@ -57,12 +62,12 @@ pub struct CliReceiver {
 #[derive(Debug, StructOpt)]
 pub enum CliActionSubcommand {
     TransferNEARTokens(CliTransferNEARTokens),
-    // CallFunction,
-    // StakeNEARTokens,
-    // CreateAccount,
-    // DeleteAccount,
-    // AddAccessKey,
-    // DeteteAccessKey,
+    CallFunction,
+    StakeNEARTokens,
+    CreateAccount(CliCreateAccount),
+    DeleteAccount,
+    AddAccessKey,
+    DeteteAccessKey,
     Skip(CliSkip)
 }
 
@@ -98,8 +103,20 @@ impl ActionSubcommand {
                     next_action
                 })
             },
-            // Some(1) => ActionSubcommand::CallFunction,
-            Some(1) => ActionSubcommand::Skip(Skip{sign_option: SignTransaction::choose_sign_option()}),
+            Some(1) => ActionSubcommand::CallFunction,
+            Some(2) => ActionSubcommand::StakeNEARTokens,
+            Some(3) => {
+                let account_id: String = CreateAccount::input_account_id();
+                let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
+                ActionSubcommand::CreateAccount(CreateAccount {
+                    account_id,
+                    next_action
+                })
+            },
+            Some(4) => ActionSubcommand::DeleteAccount,
+            Some(5) => ActionSubcommand::AddAccessKey,
+            Some(6) => ActionSubcommand::DeteteAccessKey,
+            Some(7) => ActionSubcommand::Skip(Skip{sign_option: SignTransaction::choose_sign_option()}),
             _ => ActionSubcommand::default()
         }
     }
@@ -136,8 +153,12 @@ impl From<CliActionSubcommand> for ActionSubcommand {
         println!("-----------  From<CliActionSubcommand> for ActionSubcommand   -------------- {:?}", &item);
         match item {
             CliActionSubcommand::TransferNEARTokens(cli_transfer_near_token) => {
-                let transfer_near_token = TransferNEARTokens::from(cli_transfer_near_token);
+                let transfer_near_token: TransferNEARTokens = TransferNEARTokens::from(cli_transfer_near_token);
                 ActionSubcommand::TransferNEARTokens(transfer_near_token)
+            },
+            CliActionSubcommand::CreateAccount(cli_create_account) => {
+                let create_account: CreateAccount = CreateAccount::from(cli_create_account);
+                ActionSubcommand::CreateAccount(create_account)
             },
             _ => ActionSubcommand::default()
         }
