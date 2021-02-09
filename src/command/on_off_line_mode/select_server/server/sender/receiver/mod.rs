@@ -25,10 +25,20 @@ use skip_type::{
     Skip,
     CliSkip
 };
-mod create_account_type;
-use create_account_type::{
+mod action_to_account_type;
+use action_to_account_type::{
     ActionToAccount,
     CliActionToAccount
+};
+mod delete_access_key_type;
+use delete_access_key_type::{
+    DeleteAccessKey,
+    CliDeleteAccessKey
+};
+mod add_access_key_type;
+use add_access_key_type::{
+    AddAccessKey,
+    CliAddAccessKey
 };
 
 
@@ -47,8 +57,8 @@ pub enum ActionSubcommand {
     StakeNEARTokens,
     CreateAccount(ActionToAccount),
     DeleteAccount(ActionToAccount),
-    AddAccessKey,
-    DeteteAccessKey,
+    AddAccessKey(AddAccessKey),
+    DeteteAccessKey(DeleteAccessKey),
     Skip(Skip)
 }
 
@@ -66,8 +76,8 @@ pub enum CliActionSubcommand {
     StakeNEARTokens,
     CreateAccount(CliActionToAccount),
     DeleteAccount(CliActionToAccount),
-    AddAccessKey,
-    DeteteAccessKey,
+    AddAccessKey(AddAccessKey),
+    DeteteAccessKey(DeleteAccessKey),
     Skip(CliSkip)
 }
 
@@ -121,8 +131,20 @@ impl ActionSubcommand {
                     next_action
                 })
             },
-            Some(5) => ActionSubcommand::AddAccessKey,
-            Some(6) => ActionSubcommand::DeteteAccessKey,
+            Some(5) => {
+                let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
+                ActionSubcommand::AddAccessKey(AddAccessKey {
+                    next_action
+                })
+            },
+            Some(6) => {
+                let access_key: String = DeleteAccessKey::input_access_key();
+                let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
+                ActionSubcommand::DeteteAccessKey(DeleteAccessKey {
+                    access_key,
+                    next_action
+                })
+            },
             Some(7) => ActionSubcommand::Skip(Skip{sign_option: SignTransaction::choose_sign_option()}),
             _ => ActionSubcommand::default()
         }

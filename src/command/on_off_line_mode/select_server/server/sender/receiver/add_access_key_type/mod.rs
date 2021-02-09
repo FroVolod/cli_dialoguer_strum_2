@@ -20,43 +20,43 @@ use super::{
 
 
 #[derive(Debug, StructOpt)]
-pub struct ActionToAccount {
-    pub account_id: String,
+pub struct AddAccessKey {
+    // pub access_key: String,
     #[structopt(subcommand)]
     pub next_action: Box<ActionSubcommand>
 }
 
 #[derive(Debug, StructOpt)]
-pub struct CliActionToAccount {
-    account_id: Option<String>,
+pub struct CliAddAccessKey {
+    // access_key: Option<String>,
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand>
 }
 
-impl From<CliActionToAccount> for ActionToAccount {
-    fn from(item: CliActionToAccount) -> Self {
-        let account_id: String = match item.account_id {
-            Some(cli_account_id) => cli_account_id,
-            None => ActionToAccount::input_account_id()
-        };
+impl From<CliAddAccessKey> for AddAccessKey {
+    fn from(item: CliAddAccessKey) -> Self {
+        // let access_key: String = match item.access_key {
+        //     Some(cli_access_key) => cli_access_key,
+        //     None => DeleteAccessKey::input_access_key()
+        // };
         let next_action: Box<ActionSubcommand> = match item.next_action {
             Some(cli_skip_action) => {
                 Box::new(ActionSubcommand::from(cli_skip_action))
             },
             None => Box::new(ActionSubcommand::choose_action_command()) 
         };
-        ActionToAccount {
-            account_id,
+        AddAccessKey {
+            // access_key,
             next_action
         }
     }
 }
 
-impl ActionToAccount {
-    pub fn input_account_id() -> String {
-        Input::new()
-            .with_prompt("Enter the account ID to create new account")
-            .interact_text()
-            .unwrap()
-    }
-}
+// impl AddAccessKey {
+//     pub fn input_access_key() -> String {
+//         Input::new()
+//             .with_prompt("Enter the access key to remove it")
+//             .interact_text()
+//             .unwrap()
+//     }
+// }
