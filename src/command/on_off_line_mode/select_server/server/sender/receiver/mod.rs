@@ -27,8 +27,8 @@ use skip_type::{
 };
 mod create_account_type;
 use create_account_type::{
-    CreateAccount,
-    CliCreateAccount
+    ActionToAccount,
+    CliActionToAccount
 };
 
 
@@ -45,8 +45,8 @@ pub enum ActionSubcommand {
     TransferNEARTokens(TransferNEARTokens),
     CallFunction,
     StakeNEARTokens,
-    CreateAccount(CreateAccount),
-    DeleteAccount,
+    CreateAccount(ActionToAccount),
+    DeleteAccount(ActionToAccount),
     AddAccessKey,
     DeteteAccessKey,
     Skip(Skip)
@@ -64,8 +64,8 @@ pub enum CliActionSubcommand {
     TransferNEARTokens(CliTransferNEARTokens),
     CallFunction,
     StakeNEARTokens,
-    CreateAccount(CliCreateAccount),
-    DeleteAccount,
+    CreateAccount(CliActionToAccount),
+    DeleteAccount(CliActionToAccount),
     AddAccessKey,
     DeteteAccessKey,
     Skip(CliSkip)
@@ -106,14 +106,21 @@ impl ActionSubcommand {
             Some(1) => ActionSubcommand::CallFunction,
             Some(2) => ActionSubcommand::StakeNEARTokens,
             Some(3) => {
-                let account_id: String = CreateAccount::input_account_id();
+                let account_id: String = ActionToAccount::input_account_id();
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
-                ActionSubcommand::CreateAccount(CreateAccount {
+                ActionSubcommand::CreateAccount(ActionToAccount {
                     account_id,
                     next_action
                 })
             },
-            Some(4) => ActionSubcommand::DeleteAccount,
+            Some(4) => {
+                let account_id: String = ActionToAccount::input_account_id();
+                let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
+                ActionSubcommand::DeleteAccount(ActionToAccount {
+                    account_id,
+                    next_action
+                })
+            },
             Some(5) => ActionSubcommand::AddAccessKey,
             Some(6) => ActionSubcommand::DeteteAccessKey,
             Some(7) => ActionSubcommand::Skip(Skip{sign_option: SignTransaction::choose_sign_option()}),
@@ -157,7 +164,7 @@ impl From<CliActionSubcommand> for ActionSubcommand {
                 ActionSubcommand::TransferNEARTokens(transfer_near_token)
             },
             CliActionSubcommand::CreateAccount(cli_create_account) => {
-                let create_account: CreateAccount = CreateAccount::from(cli_create_account);
+                let create_account: ActionToAccount = ActionToAccount::from(cli_create_account);
                 ActionSubcommand::CreateAccount(create_account)
             },
             _ => ActionSubcommand::default()
