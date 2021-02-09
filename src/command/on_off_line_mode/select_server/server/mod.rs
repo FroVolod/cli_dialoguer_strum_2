@@ -19,12 +19,7 @@ use dialoguer::{
 // use skip_type::{SignTransaction, Skip};
 
 mod sender;
-use sender::{
-    Sender,
-    CliSender,
-    Authentication,
-    CliAuthentication
-};
+use sender::{CliSender, SendTo, Sender};
 
 use crate::Args;
 
@@ -121,10 +116,10 @@ impl SendFrom {
     pub fn send_from() -> Self {
         println!("-------------   fn send_from() --------------");
         let account_id : String = Sender::input_account_id();
-        let auth: Authentication = Authentication::choose_authentication();
+        let send_to: SendTo = SendTo::send_to();
         SendFrom::sender(Sender {
             account_id,
-            auth
+            send_to
         })
     }
 }
