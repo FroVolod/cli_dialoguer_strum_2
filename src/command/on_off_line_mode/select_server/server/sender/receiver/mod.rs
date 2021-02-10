@@ -25,10 +25,10 @@ use skip_type::{
     Skip,
     CliSkip
 };
-mod action_to_account_type;
-use action_to_account_type::{
-    ActionToAccount,
-    CliActionToAccount
+mod create_account_type;
+use create_account_type::{
+    CreateAccount,
+    CliCreateAccount
 };
 mod delete_access_key_type;
 use delete_access_key_type::{
@@ -39,6 +39,11 @@ mod add_access_key_type;
 use add_access_key_type::{
     AddAccessKey,
     CliAddAccessKey
+};
+mod delete_account_type;
+use delete_account_type::{
+    DeleteAccount,
+    CliDeleteAccount
 };
 
 
@@ -55,8 +60,8 @@ pub enum ActionSubcommand {
     TransferNEARTokens(TransferNEARTokens),
     CallFunction,
     StakeNEARTokens,
-    CreateAccount(ActionToAccount),
-    DeleteAccount(ActionToAccount),
+    CreateAccount(CreateAccount),
+    DeleteAccount(DeleteAccount),
     AddAccessKey(AddAccessKey),
     DeleteAccessKey(DeleteAccessKey),
     Skip(Skip)
@@ -74,8 +79,8 @@ pub enum CliActionSubcommand {
     TransferNEARTokens(CliTransferNEARTokens),
     CallFunction,
     StakeNEARTokens,
-    CreateAccount(CliActionToAccount),
-    DeleteAccount(CliActionToAccount),
+    CreateAccount(CliCreateAccount),
+    DeleteAccount(CliDeleteAccount),
     AddAccessKey(CliAddAccessKey),
     DeleteAccessKey(CliDeleteAccessKey),
     Skip(CliSkip)
@@ -116,18 +121,16 @@ impl ActionSubcommand {
             Some(1) => ActionSubcommand::CallFunction,
             Some(2) => ActionSubcommand::StakeNEARTokens,
             Some(3) => {
-                let account_id: String = ActionToAccount::input_account_id();
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
-                ActionSubcommand::CreateAccount(ActionToAccount {
-                    account_id,
+                ActionSubcommand::CreateAccount(CreateAccount {
                     next_action
                 })
             },
             Some(4) => {
-                let account_id: String = ActionToAccount::input_account_id();
+                let beneficiary_id: String = DeleteAccount::input_beneficiary_id();
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
-                ActionSubcommand::DeleteAccount(ActionToAccount {
-                    account_id,
+                ActionSubcommand::DeleteAccount(DeleteAccount {
+                    beneficiary_id,
                     next_action
                 })
             },
@@ -186,11 +189,11 @@ impl From<CliActionSubcommand> for ActionSubcommand {
                 ActionSubcommand::TransferNEARTokens(transfer_near_token)
             },
             CliActionSubcommand::CreateAccount(cli_create_account) => {
-                let create_account: ActionToAccount = ActionToAccount::from(cli_create_account);
+                let create_account: CreateAccount = CreateAccount::from(cli_create_account);
                 ActionSubcommand::CreateAccount(create_account)
             },
             CliActionSubcommand::DeleteAccount(cli_delete_account) => {
-                let delete_account: ActionToAccount = ActionToAccount::from(cli_delete_account);
+                let delete_account: DeleteAccount = DeleteAccount::from(cli_delete_account);
                 ActionSubcommand::DeleteAccount(delete_account)
             },
             CliActionSubcommand::AddAccessKey(cli_add_access_key) => {
