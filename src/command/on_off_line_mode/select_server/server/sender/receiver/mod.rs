@@ -58,7 +58,7 @@ pub enum ActionSubcommand {
     CreateAccount(ActionToAccount),
     DeleteAccount(ActionToAccount),
     AddAccessKey(AddAccessKey),
-    DeteteAccessKey(DeleteAccessKey),
+    DeleteAccessKey(DeleteAccessKey),
     Skip(Skip)
 }
 
@@ -76,8 +76,8 @@ pub enum CliActionSubcommand {
     StakeNEARTokens,
     CreateAccount(CliActionToAccount),
     DeleteAccount(CliActionToAccount),
-    AddAccessKey(AddAccessKey),
-    DeteteAccessKey(DeleteAccessKey),
+    AddAccessKey(CliAddAccessKey),
+    DeleteAccessKey(CliDeleteAccessKey),
     Skip(CliSkip)
 }
 
@@ -87,13 +87,13 @@ pub enum CliActionSkipSubcommand {
 }
 
 
-impl Default for ActionSubcommand {
-    fn default() -> Self {
-        ActionSubcommand::Skip(Skip{
-            sign_option: SignTransaction::choose_sign_option()
-        })
-    }
-}
+// impl Default for ActionSubcommand {
+//     fn default() -> Self {
+//         ActionSubcommand::Skip(Skip{
+//             sign_option: SignTransaction::choose_sign_option()
+//         })
+//     }
+// }
 
 impl ActionSubcommand {
     pub fn choose_action_command() -> Self {
@@ -140,13 +140,13 @@ impl ActionSubcommand {
             Some(6) => {
                 let access_key: String = DeleteAccessKey::input_access_key();
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
-                ActionSubcommand::DeteteAccessKey(DeleteAccessKey {
+                ActionSubcommand::DeleteAccessKey(DeleteAccessKey {
                     access_key,
                     next_action
                 })
             },
             Some(7) => ActionSubcommand::Skip(Skip{sign_option: SignTransaction::choose_sign_option()}),
-            _ => ActionSubcommand::default()
+            _ => unreachable!("Error")
         }
     }
 }
@@ -189,7 +189,19 @@ impl From<CliActionSubcommand> for ActionSubcommand {
                 let create_account: ActionToAccount = ActionToAccount::from(cli_create_account);
                 ActionSubcommand::CreateAccount(create_account)
             },
-            _ => ActionSubcommand::default()
+            CliActionSubcommand::DeleteAccount(cli_delete_account) => {
+                let delete_account: ActionToAccount = ActionToAccount::from(cli_delete_account);
+                ActionSubcommand::DeleteAccount(delete_account)
+            },
+            CliActionSubcommand::AddAccessKey(cli_add_access_key) => {
+                let add_access_key: AddAccessKey = AddAccessKey::from(cli_add_access_key);
+                ActionSubcommand::AddAccessKey(add_access_key)
+            },
+            CliActionSubcommand::DeleteAccessKey(cli_delete_access_key) => {
+                let delete_access_key: DeleteAccessKey = DeleteAccessKey::from(cli_delete_access_key);
+                ActionSubcommand::DeleteAccessKey(delete_access_key)
+            },
+            _ => unreachable!("Error")
         }
     }
 }

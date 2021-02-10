@@ -74,35 +74,38 @@ impl Mode {
             },
             Some(1) => {
                 println!("============== {:?}", choose_mode[1]);
-                Mode::Offline(OfflineArgs {})
+                let nonce: u64 = OfflineArgs::input_nonce();
+                let block_height: String = OfflineArgs::input_block_height();
+                let selected_server = SelectServer::select_server();
+                Mode::Offline(OfflineArgs {
+                    nonce,
+                    block_height,
+                    selected_server
+                })
             }
             _ => unreachable!("Error")
         }
     }
 }
 
-#[derive(Debug, Display, EnumVariantNames, StructOpt)]
-pub enum CliMode {
-    Online(CliOnlineArgs),
-    Offline(OfflineArgs),
-}
-
-impl From<CliMode> for Mode {
-    fn from(item: CliMode) -> Self {
-        match item {
-            CliMode::Online(cli_online_args) => {
-                let selected_server = OnlineArgs::from(cli_online_args);
-                Mode::Online(selected_server)
-            }
-            CliMode::Offline(OfflineArgs{}) => Mode::Offline(OfflineArgs{})
-        }
-    }
+#[derive(Debug, StructOpt)]
+struct OfflineArgs {
+    #[structopt(long)]
+    nonce: u64,
+    #[structopt(long)]
+    block_height: String,
+    #[structopt(subcommand)]
+    selected_server: SelectServer
 }
 
 #[derive(Debug, StructOpt)]
-struct OfflineArgs {
-    // #[structopt(long)]
-    // block_height: u64,
+struct CliOfflineArgs {
+    #[structopt(long)]
+    nonce: Option<u64>,
+    #[structopt(long)]
+    block_height: Option<String>,
+    #[structopt(subcommand)]
+    selected_server: Option<CliSelectServer> 
 }
 
 #[derive(Debug, StructOpt)]
@@ -124,5 +127,64 @@ impl From<CliOnlineArgs> for OnlineArgs {
             None => SelectServer::select_server()
         };
         OnlineArgs {selected_server}
+    }
+}
+
+impl From<CliOfflineArgs> for OfflineArgs {
+    fn from(item: CliOfflineArgs) -> Self {
+        let nonce: u64 = match item.nonce {
+            Some(cli_nonce) => cli_nonce,
+            None => OfflineArgs::input_nonce()
+        };
+        let block_height: String = match item.block_height {
+            Some(cli_block_height) => cli_block_height,
+            None => OfflineArgs::input_block_height()
+        };
+        let selected_server = match item.selected_server {
+            Some(cli_selected_server) => SelectServer::from(cli_selected_server),
+            None => SelectServer::select_server()
+        };
+        OfflineArgs {
+            nonce,
+            block_height,
+            selected_server
+        }
+    }
+}
+
+impl OfflineArgs {
+    fn input_nonce() -> u64 {
+        Input::new()
+            .with_prompt("Enter transaction nonce (query the access key information with
+                `near-cli utils view-access-key frol4.testnet ed25519:...` incremented by 1)")
+            .interact_text()
+            .unwrap()
+    }
+    fn input_block_height() -> String {
+        Input::new()
+            .with_prompt("Enter recent block hash:")
+            .interact_text()
+            .unwrap()
+    }
+}
+
+#[derive(Debug, Display, EnumVariantNames, StructOpt)]
+pub enum CliMode {
+    Online(CliOnlineArgs),
+    Offline(CliOfflineArgs),
+}
+
+impl From<CliMode> for Mode {
+    fn from(item: CliMode) -> Self {
+        match item {
+            CliMode::Online(cli_online_args) => {
+                let online_args: OnlineArgs = OnlineArgs::from(cli_online_args);
+                Mode::Online(online_args)
+            },
+            CliMode::Offline(cli_offline_args) => {
+                let offline_args:OfflineArgs = OfflineArgs::from(cli_offline_args);
+                Mode::Offline(offline_args)
+            }
+        }
     }
 }
