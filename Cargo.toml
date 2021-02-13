@@ -11,3 +11,15 @@ structopt = "0.3"
 dialoguer = "0.7"
 strum = "0.20"
 strum_macros = "0.20"
+smart-default = "0.6.0"
+derive_more = "0.99.9"
+
+
+# near-crypto = { git = "https://github.com/nearprotocol/nearcore", rev="1cb93029cb41d224b1a6c77caf90414ff64e3d47" }
+# near-primitives = { git = "https://github.com/nearprotocol/nearcore", rev="1cb93029cb41d224b1a6c77caf90414ff64e3d47" }
+# near-jsonrpc-client = { git = "https://github.com/nearprotocol/nearcore", rev="1cb93029cb41d224b1a6c77caf90414ff64e3d47" }
+
+
+near-crypto = { git = "https://github.com/nearprotocol/nearcore", rev="29fcaf3b8c81a4c0371d105054ce251355382a77" }
+near-primitives = { git = "https://github.com/nearprotocol/nearcore", rev="29fcaf3b8c81a4c0371d105054ce251355382a77" }
+near-jsonrpc-client = { git = "https://github.com/nearprotocol/nearcore", rev="29fcaf3b8c81a4c0371d105054ce251355382a77" }

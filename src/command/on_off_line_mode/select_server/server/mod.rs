@@ -24,18 +24,43 @@ use sender::{CliSender, SendTo, Sender};
 use crate::Args;
 
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub struct Server {
     pub url: String,
-    #[structopt(subcommand)]
     pub send_from: SendFrom
     // #[structopt(subcommand)]
     // pub transaction_subcommand: ActionSubcommand
 }
 
-#[derive(Debug, StructOpt)]
+impl Server {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+    ) {
+        println!("Server process:   self        {:?}", &self);
+        let selected_server_url: String = self.url.clone();
+        self.send_from.process(prepopulated_unsigned_transaction, selected_server_url);
+
+    }
+}
+
+#[derive(Debug)]
 pub enum SendFrom {
-    sender(Sender)
+    Sender(Sender)
+}
+
+impl SendFrom {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("Sendfrom process:      self:      {:?}", &self);
+        match self {
+            SendFrom::Sender(sender) => sender.process(prepopulated_unsigned_transaction, selected_server_url),
+            _ => unreachable!("Error")
+        }
+    }
 }
 
 #[derive(Debug, StructOpt)]
@@ -57,7 +82,7 @@ pub struct CliCustomServer {
 
 #[derive(Debug, StructOpt)]
 pub enum CliSendFrom {
-    sender(CliSender)
+    Sender(CliSender)
 }
 
 impl CliServer {
@@ -103,9 +128,9 @@ impl From<CliSendFrom> for SendFrom {
     fn from(item: CliSendFrom) -> Self {
         println!("   **********     From<CliSendFrom> for SendFrom      *********  item: {:?}", item);
         match item {
-            CliSendFrom::sender(cli_sender) => {
-                let sender: Sender = Sender::from(cli_sender);
-                SendFrom::sender(sender)
+            CliSendFrom::Sender(cli_Sender) => {
+                let sender: Sender = Sender::from(cli_Sender);
+                SendFrom::Sender(sender)
             },
             _ => unreachable!("Error")
         }
@@ -117,7 +142,7 @@ impl SendFrom {
         println!("-------------   fn send_from() --------------");
         let account_id : String = Sender::input_account_id();
         let send_to: SendTo = SendTo::send_to();
-        SendFrom::sender(Sender {
+        SendFrom::Sender(Sender {
             account_id,
             send_to
         })

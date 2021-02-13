@@ -12,6 +12,8 @@ use dialoguer::{
     theme::ColorfulTheme,
     console::Term
 };
+use near_primitives::borsh::BorshSerialize;
+
 
 mod select_server;
 use select_server::{
@@ -26,10 +28,38 @@ pub struct CliOnOffLineMode {
     pub mode: Option<CliMode>, // selected_server: SelectServer
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub struct OnOffLineMode {
-    #[structopt(subcommand)]
     pub mode: Mode,
+}
+
+impl OnOffLineMode {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+    ) {
+        println!("OnOffLineMode - prepopulated_unsigned_transaction :      {:?}", prepopulated_unsigned_transaction);
+        match self.mode {
+            Mode::Online(online_args) => {
+                println!("Online args:  {:?}", &online_args)
+                // реализовать online запрос для block_hash и nonce
+            },
+            Mode::Offline(offline_args) => {
+                println!("Offline args:  {:?}", &offline_args);
+                let nonce = offline_args.nonce.clone();
+                let block_hash = offline_args.block_hash.clone();
+                let unsigned_transaction = near_primitives::transaction::Transaction {                    
+                    block_hash,
+                    nonce,
+                    .. prepopulated_unsigned_transaction
+                };
+                // let selected_server = offline_args.selected_server;
+                // println!("server:   {:?}", &selected_server);
+                offline_args.process(unsigned_transaction)
+            },
+            _ => unreachable!("Error")
+        }
+    }
 }
 
 impl From<CliOnOffLineMode> for OnOffLineMode {
@@ -42,7 +72,7 @@ impl From<CliOnOffLineMode> for OnOffLineMode {
     }
 }
 
-#[derive(Debug, Display, EnumVariantNames, StructOpt)]
+#[derive(Debug, Display, EnumVariantNames)]
 pub enum Mode {
     Online(OnlineArgs),
     Offline(OfflineArgs),
@@ -75,11 +105,11 @@ impl Mode {
             Some(1) => {
                 println!("============== {:?}", choose_mode[1]);
                 let nonce: u64 = OfflineArgs::input_nonce();
-                let block_height: String = OfflineArgs::input_block_height();
+                let block_hash = OfflineArgs::input_block_hash();
                 let selected_server = SelectServer::select_server();
                 Mode::Offline(OfflineArgs {
                     nonce,
-                    block_height,
+                    block_hash,
                     selected_server
                 })
             }
@@ -88,34 +118,40 @@ impl Mode {
     }
 }
 
-#[derive(Debug, StructOpt)]
-struct OfflineArgs {
-    #[structopt(long)]
+#[derive(Debug)]
+pub struct OfflineArgs {
     nonce: u64,
-    #[structopt(long)]
-    block_height: String,
-    #[structopt(subcommand)]
+    block_hash: near_primitives::hash::CryptoHash,
     selected_server: SelectServer
 }
 
+impl  OfflineArgs {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+    ) {
+        println!("OfflineArgs process:        {:?}", prepopulated_unsigned_transaction);
+        self.selected_server.process(prepopulated_unsigned_transaction);
+    }
+}
+
 #[derive(Debug, StructOpt)]
-struct CliOfflineArgs {
+pub struct CliOfflineArgs {
     #[structopt(long)]
     nonce: Option<u64>,
     #[structopt(long)]
-    block_height: Option<String>,
+    block_hash: Option<crate::common::BlobAsBase58String<near_primitives::hash::CryptoHash>>,
     #[structopt(subcommand)]
     selected_server: Option<CliSelectServer> 
 }
 
-#[derive(Debug, StructOpt)]
-struct OnlineArgs {
-    #[structopt(subcommand)]
+#[derive(Debug)]
+pub struct OnlineArgs {
     selected_server: SelectServer
 }
 
 #[derive(Debug, Default, StructOpt)]
-struct CliOnlineArgs {
+pub struct CliOnlineArgs {
     #[structopt(subcommand)]
     selected_server: Option<CliSelectServer> 
 }
@@ -136,9 +172,9 @@ impl From<CliOfflineArgs> for OfflineArgs {
             Some(cli_nonce) => cli_nonce,
             None => OfflineArgs::input_nonce()
         };
-        let block_height: String = match item.block_height {
-            Some(cli_block_height) => cli_block_height,
-            None => OfflineArgs::input_block_height()
+        let block_hash = match item.block_hash {
+            Some(cli_block_hash) => cli_block_hash.into_inner(),
+            None => OfflineArgs::input_block_hash()
         };
         let selected_server = match item.selected_server {
             Some(cli_selected_server) => SelectServer::from(cli_selected_server),
@@ -146,7 +182,7 @@ impl From<CliOfflineArgs> for OfflineArgs {
         };
         OfflineArgs {
             nonce,
-            block_height,
+            block_hash,
             selected_server
         }
     }
@@ -160,11 +196,13 @@ impl OfflineArgs {
             .interact_text()
             .unwrap()
     }
-    fn input_block_height() -> String {
-        Input::new()
+    fn input_block_hash() -> near_primitives::hash::CryptoHash {
+        let input_block_hash: String = Input::new()
             .with_prompt("Enter recent block hash:")
             .interact_text()
-            .unwrap()
+            .unwrap();
+        crate::common::BlobAsBase58String::<near_primitives::hash::CryptoHash>::from_str(&input_block_hash).unwrap().into_inner()
+            
     }
 }
 

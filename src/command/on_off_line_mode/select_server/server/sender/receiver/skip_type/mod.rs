@@ -26,13 +26,12 @@ use sign_alternative::{
 
 
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub struct Skip {
-    #[structopt(subcommand)]
     pub sign_option: SignTransaction
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub enum SignTransaction {
     SignPrivateKey(SignPrivateKey),
     SignAlternative(SignAlternative)
@@ -56,7 +55,33 @@ impl Default for Skip {
     }
 }
 
+impl Skip {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("Skip process: self:       {:?}", &self);
+        println!("Skip process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        self.sign_option.process(prepopulated_unsigned_transaction, selected_server_url);
+    }
+}
+
 impl SignTransaction {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("SignTransaction process: self:       {:?}", &self);
+        println!("SignTransaction process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        match self {
+            SignTransaction::SignPrivateKey(keys) => keys.process(prepopulated_unsigned_transaction, selected_server_url),
+            SignTransaction::SignAlternative(chain) => chain.process(prepopulated_unsigned_transaction, selected_server_url),
+            _ => unreachable!("Error")
+        }
+    }
+
     pub fn choose_sign_option() -> Self {
         let sign_options = vec![
             "Yes, I want to sign the transaction with my private key",

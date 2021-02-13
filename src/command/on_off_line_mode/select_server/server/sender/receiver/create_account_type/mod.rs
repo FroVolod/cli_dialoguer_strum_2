@@ -19,9 +19,8 @@ use super::{
 };
 
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub struct CreateAccount {
-    #[structopt(subcommand)]
     pub next_action: Box<ActionSubcommand>
 }
 

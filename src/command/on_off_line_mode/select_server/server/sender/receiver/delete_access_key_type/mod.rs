@@ -19,10 +19,9 @@ use super::{
 };
 
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub struct DeleteAccessKey {
     pub access_key: String,
-    #[structopt(subcommand)]
     pub next_action: Box<ActionSubcommand>
 }
 

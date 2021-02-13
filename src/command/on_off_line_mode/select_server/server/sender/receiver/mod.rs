@@ -48,14 +48,13 @@ use delete_account_type::{
 
 
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub struct Receiver {
     pub account_id: String,
-    #[structopt(subcommand)]
     pub transaction_subcommand: ActionSubcommand
 }
 
-#[derive(Debug, EnumVariantNames, StructOpt)]
+#[derive(Debug, EnumVariantNames)]
 pub enum ActionSubcommand {
     TransferNEARTokens(TransferNEARTokens),
     CallFunction,
@@ -101,6 +100,26 @@ pub enum CliActionSkipSubcommand {
 // }
 
 impl ActionSubcommand {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("ActionSubcommand process: self:       {:?}", &self);
+        println!("ActionSubcommand process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        match self {
+            ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(prepopulated_unsigned_transaction, selected_server_url),
+            // ActionSubcommand::CallFunction(args_function) => {},
+            // ActionSubcommand::StakeNEARTokens(args_stake) => {},
+            ActionSubcommand::CreateAccount(args_create_account) => {},
+            ActionSubcommand::DeleteAccount(args_delete_account) => {},
+            ActionSubcommand::AddAccessKey(args_add_access_key) => {},
+            ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
+            ActionSubcommand::Skip(args_skip) => {},
+            _ => unreachable!("Error")
+        }
+    }
+
     pub fn choose_action_command() -> Self {
         let action_subcommands= ActionSubcommand::VARIANTS;
         let select_action_subcommand = Select::with_theme(&ColorfulTheme::default())
@@ -155,6 +174,20 @@ impl ActionSubcommand {
 }
 
 impl Receiver {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("Receiver process: self:       {:?}", &self);
+        let unsigned_transaction = near_primitives::transaction::Transaction {
+            receiver_id: self.account_id.clone(),
+            .. prepopulated_unsigned_transaction
+        };
+        self.transaction_subcommand.process(unsigned_transaction, selected_server_url);
+
+    }
+
     pub fn input_account_id() -> String {
         Input::new()
             .with_prompt("What is the account ID of the receiver?")

@@ -25,14 +25,13 @@ use super::SendFrom;
 
 
 
-#[derive(Debug,  StructOpt)]
+#[derive(Debug)]
 pub struct Sender {
     pub account_id: String,
-    #[structopt(subcommand)]
     pub send_to: SendTo
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub enum SendTo {
     Receiver(Receiver)
 }
@@ -50,6 +49,19 @@ pub enum CliSendTo {
 
 
 impl Sender {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("Sender process: self     {:?}", &self);
+        let unsigned_transaction = near_primitives::transaction::Transaction {
+            signer_id: self.account_id.clone(),
+            .. prepopulated_unsigned_transaction
+        };
+        self.send_to.process(unsigned_transaction, selected_server_url);
+    }
+
     pub fn input_account_id() -> String {
         Input::new()
             .with_prompt("What is the account ID of the sender?")
@@ -78,6 +90,19 @@ impl From<CliSender> for Sender {
 }
 
 impl SendTo {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("SendTo process: self:       {:?}", &self);
+        println!("SendTo process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        match self {
+            SendTo::Receiver(receiver) => receiver.process(prepopulated_unsigned_transaction, selected_server_url),
+            _ => unreachable!("Error")
+        }
+    }
+
     pub fn send_to() -> Self {
         let account_id: String = Receiver::input_account_id();
         let transaction_subcommand: ActionSubcommand = ActionSubcommand::choose_action_command();

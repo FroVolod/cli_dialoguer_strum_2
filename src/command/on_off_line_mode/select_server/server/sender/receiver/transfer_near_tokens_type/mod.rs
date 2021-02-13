@@ -21,12 +21,49 @@ use super::{
 };
 
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub struct TransferNEARTokens {
-    #[structopt(long)]
     pub amount: NearBalance,
-    #[structopt(subcommand)]
     pub next_action: Box<ActionSubcommand>
+}
+
+impl TransferNEARTokens {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("TransferNEARTokens process: self:       {:?}", &self);
+        println!("TransferNEARTokens process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        let amount = match self.amount {
+            NearBalance(num) => num,
+            _ => unreachable!("Eror")
+        };
+        let action = near_primitives::transaction::Action::Transfer(
+            near_primitives::transaction::TransferAction {
+                deposit: amount,
+            },
+        );
+        let mut actions= prepopulated_unsigned_transaction.actions.clone();
+        actions.push(action);
+        let unsigned_transaction = near_primitives::transaction::Transaction {
+            actions,
+            .. prepopulated_unsigned_transaction
+        };
+        println!("unsigned_transaction.    {:?}", &unsigned_transaction);
+        match *self.next_action {
+            ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url),
+            // ActionSubcommand::CallFunction(args_function) => {},
+            // ActionSubcommand::StakeNEARTokens(args_stake) => {},
+            // ActionSubcommand::CreateAccount(args_create_account) => {},
+            // ActionSubcommand::DeleteAccount(args_delete_account) => {},
+            // ActionSubcommand::AddAccessKey(args_add_access_key) => {},
+            // ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
+            ActionSubcommand::Skip(args_skip) => args_skip.process(unsigned_transaction, selected_server_url),
+            _ => unreachable!("Error")
+        };
+        
+    }
 }
 
 #[derive(Debug, StructOpt)]

@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use structopt::StructOpt;
 use dialoguer::{
     Select,
@@ -21,6 +23,24 @@ pub struct CliSignPrivateKey {
 }
 
 impl SignPrivateKey {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("SignPrivateKey process: self:       {:?}", &self);
+        println!("SignPrivateKey process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        let public_key = near_crypto::PublicKey::from_str(&self.signer_public_key).unwrap();
+        let signer_secret_key = near_crypto::SecretKey::from_str(&self.signer_secret_key).unwrap();
+        let unsigned_transaction = near_primitives::transaction::Transaction {
+            public_key,
+            .. prepopulated_unsigned_transaction
+        };
+        println!("unsigned_transaction:  {:#?}", &unsigned_transaction);
+        
+        
+    }
+
     pub fn signer_public_key() -> String {
         Input::new()
             .with_prompt("enter sender's public key")

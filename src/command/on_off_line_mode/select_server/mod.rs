@@ -28,7 +28,7 @@ use server::{
     // ActionSubcommand
 };
 
-#[derive(Debug, Display, EnumVariantNames, StructOpt)]
+#[derive(Debug, Display, EnumVariantNames)]
 pub enum SelectServer {
     Testnet(Server),
     Mainnet(Server),
@@ -64,6 +64,24 @@ impl From<CliSelectServer> for SelectServer {
 }
 
 impl SelectServer {
+    pub fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+    ) {
+        println!("SelectServer process:  self:         {:?}", &self);
+        println!("SelectServer process:  prepopulated_unsigned_transaction:         {:?}", prepopulated_unsigned_transaction);
+        match self {
+            SelectServer::Testnet(server) => {
+                println!("server url:   {:?}", &server.url);
+                server.process(prepopulated_unsigned_transaction);
+            },
+            SelectServer::Mainnet(server) => {},
+            SelectServer::Betanet(server) => {},
+            SelectServer::Custom(server) => {},
+            _ => unreachable!("Error")
+        }
+    }
+
     pub fn select_server() -> Self {
         println!("Works select server!");
         let servers= SelectServer::VARIANTS;

@@ -19,10 +19,9 @@ use super::{
 };
 
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub struct DeleteAccount {
     pub beneficiary_id: String,
-    #[structopt(subcommand)]
     pub next_action: Box<ActionSubcommand>
 }
 
