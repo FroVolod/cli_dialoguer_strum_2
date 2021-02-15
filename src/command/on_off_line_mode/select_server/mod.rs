@@ -64,7 +64,7 @@ impl From<CliSelectServer> for SelectServer {
 }
 
 impl SelectServer {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) {
@@ -73,7 +73,7 @@ impl SelectServer {
         match self {
             SelectServer::Testnet(server) => {
                 println!("server url:   {:?}", &server.url);
-                server.process(prepopulated_unsigned_transaction);
+                server.process(prepopulated_unsigned_transaction).await;
             },
             SelectServer::Mainnet(server) => {},
             SelectServer::Betanet(server) => {},

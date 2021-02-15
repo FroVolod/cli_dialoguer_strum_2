@@ -56,19 +56,19 @@ impl Default for Skip {
 }
 
 impl Skip {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
         println!("Skip process: self:       {:?}", &self);
         println!("Skip process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
-        self.sign_option.process(prepopulated_unsigned_transaction, selected_server_url);
+        self.sign_option.process(prepopulated_unsigned_transaction, selected_server_url).await;
     }
 }
 
 impl SignTransaction {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
@@ -76,7 +76,7 @@ impl SignTransaction {
         println!("SignTransaction process: self:       {:?}", &self);
         println!("SignTransaction process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
         match self {
-            SignTransaction::SignPrivateKey(keys) => keys.process(prepopulated_unsigned_transaction, selected_server_url),
+            SignTransaction::SignPrivateKey(keys) => keys.process(prepopulated_unsigned_transaction, selected_server_url).await,
             SignTransaction::SignAlternative(chain) => chain.process(prepopulated_unsigned_transaction, selected_server_url),
             _ => unreachable!("Error")
         }

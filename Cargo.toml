@@ -14,6 +14,13 @@ strum_macros = "0.20"
 smart-default = "0.6.0"
 derive_more = "0.99.9"
 
+async-recursion = "0.3.2"
+
+actix = "0.9"
+actix-web = { version = "2", features = [ "openssl" ] }
+openssl-probe = { version = "0.1.2" }
+
+
 
 # near-crypto = { git = "https://github.com/nearprotocol/nearcore", rev="1cb93029cb41d224b1a6c77caf90414ff64e3d47" }
 # near-primitives = { git = "https://github.com/nearprotocol/nearcore", rev="1cb93029cb41d224b1a6c77caf90414ff64e3d47" }

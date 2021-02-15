@@ -13,6 +13,7 @@ use dialoguer::{
 };
 use std::num::ParseIntError;
 use std::str::FromStr;
+use async_recursion::async_recursion;
 
 use super::{
     ActionSubcommand,
@@ -28,7 +29,8 @@ pub struct TransferNEARTokens {
 }
 
 impl TransferNEARTokens {
-    pub fn process(
+    #[async_recursion(?Send)]
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
@@ -37,7 +39,7 @@ impl TransferNEARTokens {
         println!("TransferNEARTokens process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
         let amount = match self.amount {
             NearBalance(num) => num,
-            _ => unreachable!("Eror")
+            _ => unreachable!("Error")
         };
         let action = near_primitives::transaction::Action::Transfer(
             near_primitives::transaction::TransferAction {
@@ -52,17 +54,16 @@ impl TransferNEARTokens {
         };
         println!("unsigned_transaction.    {:?}", &unsigned_transaction);
         match *self.next_action {
-            ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url),
+            ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},
             // ActionSubcommand::StakeNEARTokens(args_stake) => {},
             // ActionSubcommand::CreateAccount(args_create_account) => {},
             // ActionSubcommand::DeleteAccount(args_delete_account) => {},
             // ActionSubcommand::AddAccessKey(args_add_access_key) => {},
             // ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
-            ActionSubcommand::Skip(args_skip) => args_skip.process(unsigned_transaction, selected_server_url),
+            ActionSubcommand::Skip(args_skip) => args_skip.process(unsigned_transaction, selected_server_url).await,
             _ => unreachable!("Error")
-        };
-        
+        }
     }
 }
 

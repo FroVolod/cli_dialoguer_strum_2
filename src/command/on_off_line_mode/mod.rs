@@ -34,7 +34,7 @@ pub struct OnOffLineMode {
 }
 
 impl OnOffLineMode {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) {
@@ -55,7 +55,7 @@ impl OnOffLineMode {
                 };
                 // let selected_server = offline_args.selected_server;
                 // println!("server:   {:?}", &selected_server);
-                offline_args.process(unsigned_transaction)
+                offline_args.process(unsigned_transaction).await
             },
             _ => unreachable!("Error")
         }
@@ -126,12 +126,12 @@ pub struct OfflineArgs {
 }
 
 impl  OfflineArgs {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) {
         println!("OfflineArgs process:        {:?}", prepopulated_unsigned_transaction);
-        self.selected_server.process(prepopulated_unsigned_transaction);
+        self.selected_server.process(prepopulated_unsigned_transaction).await;
     }
 }
 

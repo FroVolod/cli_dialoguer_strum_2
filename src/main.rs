@@ -42,7 +42,7 @@ impl From<CliArgs> for Args {
 }
 
 impl Args {
-    fn process(self) -> String {
+    async fn process(self) -> String {
         println!("===========        self       ===========            {:?}", &self.subcommand);
         let transaction_command = &self.subcommand;
         println!("{:?}", &transaction_command);
@@ -56,7 +56,7 @@ impl Args {
                     block_hash: Default::default(),
                     actions: vec![],
                 };
-                println!("!!!!!!!!!!!!  {:?}", &mode.process(unsigned_transaction));
+                println!("!!!!!!!!!!!!  {:?}", &mode.process(unsigned_transaction).await);
             },
             _ => unreachable!("Error") 
         };
@@ -75,5 +75,10 @@ fn main() {
     let args = Args::from(cli);
     println!("args {:#?}", args);
     println!();
-    args.process();
+    // args.process();
+
+    actix::System::builder()
+    .build()
+    .block_on(async move { args.process().await });
+
 }

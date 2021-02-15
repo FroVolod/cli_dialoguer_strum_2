@@ -1,3 +1,5 @@
+use near_primitives::borsh::BorshSerialize;
+
 use std::str::FromStr;
 
 use structopt::StructOpt;
@@ -13,7 +15,7 @@ use dialoguer::{
 #[derive(Debug, Default, StructOpt)]
 pub struct SignPrivateKey {
     pub signer_public_key: String,
-    pub signer_secret_key: String
+    pub signer_secret_key: String,
 }
 
 #[derive(Debug, Default, StructOpt)]
@@ -23,7 +25,7 @@ pub struct CliSignPrivateKey {
 }
 
 impl SignPrivateKey {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
@@ -37,8 +39,27 @@ impl SignPrivateKey {
             .. prepopulated_unsigned_transaction
         };
         println!("unsigned_transaction:  {:#?}", &unsigned_transaction);
+
+        let signature = signer_secret_key
+            .sign(unsigned_transaction.get_hash().as_ref());
+
+        let signed_transaction =
+            near_primitives::transaction::SignedTransaction::new(signature, unsigned_transaction);
+        println!("---  Signed transaction:   ---    {:#?}", signed_transaction);
         
-        
+        let transaction_info = near_jsonrpc_client::new_client(&selected_server_url)
+            .broadcast_tx_commit(near_primitives::serialize::to_base64(
+                signed_transaction
+                    .try_to_vec()
+                    .expect("Transaction is not expected to fail on serialization"),
+            ))
+            .await
+            .map_err(|err| {
+                println!("Error transaction:  {:?}",&err)
+            })
+            .unwrap();
+
+        println!("Success: {:#?}", transaction_info);
     }
 
     pub fn signer_public_key() -> String {

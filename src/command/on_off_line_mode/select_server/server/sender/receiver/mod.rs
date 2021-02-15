@@ -100,7 +100,7 @@ pub enum CliActionSkipSubcommand {
 // }
 
 impl ActionSubcommand {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
@@ -108,7 +108,7 @@ impl ActionSubcommand {
         println!("ActionSubcommand process: self:       {:?}", &self);
         println!("ActionSubcommand process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
         match self {
-            ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(prepopulated_unsigned_transaction, selected_server_url),
+            ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(prepopulated_unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},
             // ActionSubcommand::StakeNEARTokens(args_stake) => {},
             ActionSubcommand::CreateAccount(args_create_account) => {},
@@ -174,7 +174,7 @@ impl ActionSubcommand {
 }
 
 impl Receiver {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
@@ -184,7 +184,7 @@ impl Receiver {
             receiver_id: self.account_id.clone(),
             .. prepopulated_unsigned_transaction
         };
-        self.transaction_subcommand.process(unsigned_transaction, selected_server_url);
+        self.transaction_subcommand.process(unsigned_transaction, selected_server_url).await;
 
     }
 

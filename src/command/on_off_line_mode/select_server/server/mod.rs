@@ -33,13 +33,13 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) {
         println!("Server process:   self        {:?}", &self);
         let selected_server_url: String = self.url.clone();
-        self.send_from.process(prepopulated_unsigned_transaction, selected_server_url);
+        self.send_from.process(prepopulated_unsigned_transaction, selected_server_url).await;
 
     }
 }
@@ -50,14 +50,14 @@ pub enum SendFrom {
 }
 
 impl SendFrom {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
         println!("Sendfrom process:      self:      {:?}", &self);
         match self {
-            SendFrom::Sender(sender) => sender.process(prepopulated_unsigned_transaction, selected_server_url),
+            SendFrom::Sender(sender) => sender.process(prepopulated_unsigned_transaction, selected_server_url).await,
             _ => unreachable!("Error")
         }
     }

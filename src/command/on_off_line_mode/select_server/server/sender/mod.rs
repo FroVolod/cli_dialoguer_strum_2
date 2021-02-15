@@ -49,7 +49,7 @@ pub enum CliSendTo {
 
 
 impl Sender {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
@@ -59,7 +59,7 @@ impl Sender {
             signer_id: self.account_id.clone(),
             .. prepopulated_unsigned_transaction
         };
-        self.send_to.process(unsigned_transaction, selected_server_url);
+        self.send_to.process(unsigned_transaction, selected_server_url).await;
     }
 
     pub fn input_account_id() -> String {
@@ -90,7 +90,7 @@ impl From<CliSender> for Sender {
 }
 
 impl SendTo {
-    pub fn process(
+    pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
@@ -98,7 +98,7 @@ impl SendTo {
         println!("SendTo process: self:       {:?}", &self);
         println!("SendTo process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
         match self {
-            SendTo::Receiver(receiver) => receiver.process(prepopulated_unsigned_transaction, selected_server_url),
+            SendTo::Receiver(receiver) => receiver.process(prepopulated_unsigned_transaction, selected_server_url).await,
             _ => unreachable!("Error")
         }
     }
