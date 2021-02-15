@@ -87,7 +87,7 @@ pub enum CliActionSubcommand {
 
 #[derive(Debug, StructOpt)]
 pub enum CliActionSkipSubcommand {
-    Skip
+    Skip(CliSkipAction)
 }
 
 
@@ -245,8 +245,19 @@ impl From<CliActionSubcommand> for ActionSubcommand {
 impl From<CliActionSkipSubcommand> for ActionSubcommand {
     fn from(item: CliActionSkipSubcommand) -> Self {
         match item {
-            _ => ActionSubcommand::Skip(SkipAction{sign_option: SignTransaction::choose_sign_option()}),
+            // _ => ActionSubcommand::Skip(SkipAction{sign_option: SignTransaction::choose_sign_option()}),
+            CliActionSkipSubcommand::Skip(cli_skip_action) => {
+                let skip_action: SkipAction = SkipAction::from(cli_skip_action);
+                ActionSubcommand::Skip(skip_action)
+            }
 
         }
     }
+    // fn from(item: CliActionSkipSubcommand) -> Self {
+    //     let sign_option: SignTransaction = match item.sign_option {
+    //         Some(cli_sign_transaction) => SignTransaction::from(cli_sign_transaction),
+    //         None => SignTransaction::choose_sign_option()
+    //     };
+    //     SkipAction {sign_option}
+    // }
 }

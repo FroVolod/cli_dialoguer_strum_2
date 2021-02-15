@@ -69,7 +69,6 @@ impl TransferNEARTokensAction {
 
 #[derive(Debug, StructOpt)]
 pub struct CliTransferNEARTokensAction {
-    #[structopt(long)]
     amount: Option<NearBalance>,
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand> 

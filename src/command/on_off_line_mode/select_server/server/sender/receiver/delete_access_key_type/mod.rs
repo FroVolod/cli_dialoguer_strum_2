@@ -27,6 +27,7 @@ pub struct DeleteAccessKeyAction {
 
 #[derive(Debug, StructOpt)]
 pub struct CliDeleteAccessKeyAction {
+    #[structopt(long)]
     access_key: Option<String>,
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand>

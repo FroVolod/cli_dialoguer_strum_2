@@ -49,11 +49,12 @@ pub enum CliSignTransaction {
     SignAlternative(CliSignAlternative)
 }
 
-impl Default for SkipAction {
-    fn default() -> Self {
-        Self{sign_option: SignTransaction::SignPrivateKey(SignPrivateKey::default())}
-    }
-}
+
+// impl Default for SkipAction {
+//     fn default() -> Self {
+//         Self{sign_option: SignTransaction::SignPrivateKey(SignPrivateKey::default())}
+//     }
+// }
 
 impl SkipAction {
     pub async fn process(

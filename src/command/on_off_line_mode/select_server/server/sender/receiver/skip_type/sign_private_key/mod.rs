@@ -20,7 +20,9 @@ pub struct SignPrivateKey {
 
 #[derive(Debug, Default, StructOpt)]
 pub struct CliSignPrivateKey {
+    #[structopt(long)]
     signer_public_key: Option<String>,
+    #[structopt(long)]
     signer_secret_key: Option<String>
 }
 

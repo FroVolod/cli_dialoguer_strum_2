@@ -73,6 +73,7 @@ pub struct CliServer {
 
 #[derive(Debug, StructOpt)]
 pub struct CliCustomServer {
+    #[structopt(long)]
     pub url: Option<String>,
     #[structopt(subcommand)]
     send_from: Option<CliSendFrom> 

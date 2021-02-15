@@ -27,6 +27,7 @@ pub struct DeleteAccountAction {
 
 #[derive(Debug, StructOpt)]
 pub struct CliDeleteAccountAction {
+    #[structopt(long)]
     beneficiary_id: Option<String>,
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand>

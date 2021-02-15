@@ -22,6 +22,7 @@ pub struct SignAlternative {
 
 #[derive(Debug, StructOpt)]
 pub struct CliSignAlternative {
+    #[structopt(long)]
     key_chain: Option<String>,
 }
 
