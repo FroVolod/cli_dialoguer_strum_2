@@ -15,35 +15,35 @@ use dialoguer::{
 
 mod transfer_near_tokens_type;
 use transfer_near_tokens_type::{
-    TransferNEARTokens,
-    CliTransferNEARTokens,
+    TransferNEARTokensAction,
+    CliTransferNEARTokensAction,
     NearBalance
 };
 mod skip_type;
 use skip_type::{
     SignTransaction,
-    Skip,
-    CliSkip
+    SkipAction,
+    CliSkipAction
 };
 mod create_account_type;
 use create_account_type::{
-    CreateAccount,
-    CliCreateAccount
+    CreateAccountAction,
+    CliCreateAccountAction
 };
 mod delete_access_key_type;
 use delete_access_key_type::{
-    DeleteAccessKey,
-    CliDeleteAccessKey
+    DeleteAccessKeyAction,
+    CliDeleteAccessKeyAction
 };
 mod add_access_key_type;
 use add_access_key_type::{
-    AddAccessKey,
-    CliAddAccessKey
+    AddAccessKeyAction,
+    CliAddAccessKeyAction
 };
 mod delete_account_type;
 use delete_account_type::{
-    DeleteAccount,
-    CliDeleteAccount
+    DeleteAccountAction,
+    CliDeleteAccountAction
 };
 
 
@@ -56,14 +56,14 @@ pub struct Receiver {
 
 #[derive(Debug, EnumVariantNames)]
 pub enum ActionSubcommand {
-    TransferNEARTokens(TransferNEARTokens),
+    TransferNEARTokens(TransferNEARTokensAction),
     CallFunction,
     StakeNEARTokens,
-    CreateAccount(CreateAccount),
-    DeleteAccount(DeleteAccount),
-    AddAccessKey(AddAccessKey),
-    DeleteAccessKey(DeleteAccessKey),
-    Skip(Skip)
+    CreateAccount(CreateAccountAction),
+    DeleteAccount(DeleteAccountAction),
+    AddAccessKey(AddAccessKeyAction),
+    DeleteAccessKey(DeleteAccessKeyAction),
+    Skip(SkipAction)
 }
 
 #[derive(Debug, StructOpt)]
@@ -75,14 +75,14 @@ pub struct CliReceiver {
 
 #[derive(Debug, StructOpt)]
 pub enum CliActionSubcommand {
-    TransferNEARTokens(CliTransferNEARTokens),
+    TransferNEARTokens(CliTransferNEARTokensAction),
     CallFunction,
     StakeNEARTokens,
-    CreateAccount(CliCreateAccount),
-    DeleteAccount(CliDeleteAccount),
-    AddAccessKey(CliAddAccessKey),
-    DeleteAccessKey(CliDeleteAccessKey),
-    Skip(CliSkip)
+    CreateAccount(CliCreateAccountAction),
+    DeleteAccount(CliDeleteAccountAction),
+    AddAccessKey(CliAddAccessKeyAction),
+    DeleteAccessKey(CliDeleteAccessKeyAction),
+    Skip(CliSkipAction)
 }
 
 #[derive(Debug, StructOpt)]
@@ -132,7 +132,7 @@ impl ActionSubcommand {
             Some(0) => {
                 let amount: NearBalance = NearBalance::input_amount();
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
-                ActionSubcommand::TransferNEARTokens(TransferNEARTokens {
+                ActionSubcommand::TransferNEARTokens(TransferNEARTokensAction {
                     amount,
                     next_action
                 })
@@ -141,33 +141,33 @@ impl ActionSubcommand {
             Some(2) => ActionSubcommand::StakeNEARTokens,
             Some(3) => {
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
-                ActionSubcommand::CreateAccount(CreateAccount {
+                ActionSubcommand::CreateAccount(CreateAccountAction {
                     next_action
                 })
             },
             Some(4) => {
-                let beneficiary_id: String = DeleteAccount::input_beneficiary_id();
+                let beneficiary_id: String = DeleteAccountAction::input_beneficiary_id();
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
-                ActionSubcommand::DeleteAccount(DeleteAccount {
+                ActionSubcommand::DeleteAccount(DeleteAccountAction {
                     beneficiary_id,
                     next_action
                 })
             },
             Some(5) => {
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
-                ActionSubcommand::AddAccessKey(AddAccessKey {
+                ActionSubcommand::AddAccessKey(AddAccessKeyAction {
                     next_action
                 })
             },
             Some(6) => {
-                let access_key: String = DeleteAccessKey::input_access_key();
+                let access_key: String = DeleteAccessKeyAction::input_access_key();
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
-                ActionSubcommand::DeleteAccessKey(DeleteAccessKey {
+                ActionSubcommand::DeleteAccessKey(DeleteAccessKeyAction {
                     access_key,
                     next_action
                 })
             },
-            Some(7) => ActionSubcommand::Skip(Skip{sign_option: SignTransaction::choose_sign_option()}),
+            Some(7) => ActionSubcommand::Skip(SkipAction{sign_option: SignTransaction::choose_sign_option()}),
             _ => unreachable!("Error")
         }
     }
@@ -218,23 +218,23 @@ impl From<CliActionSubcommand> for ActionSubcommand {
         println!("-----------  From<CliActionSubcommand> for ActionSubcommand   -------------- {:?}", &item);
         match item {
             CliActionSubcommand::TransferNEARTokens(cli_transfer_near_token) => {
-                let transfer_near_token: TransferNEARTokens = TransferNEARTokens::from(cli_transfer_near_token);
+                let transfer_near_token: TransferNEARTokensAction = TransferNEARTokensAction::from(cli_transfer_near_token);
                 ActionSubcommand::TransferNEARTokens(transfer_near_token)
             },
             CliActionSubcommand::CreateAccount(cli_create_account) => {
-                let create_account: CreateAccount = CreateAccount::from(cli_create_account);
+                let create_account: CreateAccountAction = CreateAccountAction::from(cli_create_account);
                 ActionSubcommand::CreateAccount(create_account)
             },
             CliActionSubcommand::DeleteAccount(cli_delete_account) => {
-                let delete_account: DeleteAccount = DeleteAccount::from(cli_delete_account);
+                let delete_account: DeleteAccountAction = DeleteAccountAction::from(cli_delete_account);
                 ActionSubcommand::DeleteAccount(delete_account)
             },
             CliActionSubcommand::AddAccessKey(cli_add_access_key) => {
-                let add_access_key: AddAccessKey = AddAccessKey::from(cli_add_access_key);
+                let add_access_key: AddAccessKeyAction = AddAccessKeyAction::from(cli_add_access_key);
                 ActionSubcommand::AddAccessKey(add_access_key)
             },
             CliActionSubcommand::DeleteAccessKey(cli_delete_access_key) => {
-                let delete_access_key: DeleteAccessKey = DeleteAccessKey::from(cli_delete_access_key);
+                let delete_access_key: DeleteAccessKeyAction = DeleteAccessKeyAction::from(cli_delete_access_key);
                 ActionSubcommand::DeleteAccessKey(delete_access_key)
             },
             _ => unreachable!("Error")
@@ -245,7 +245,7 @@ impl From<CliActionSubcommand> for ActionSubcommand {
 impl From<CliActionSkipSubcommand> for ActionSubcommand {
     fn from(item: CliActionSkipSubcommand) -> Self {
         match item {
-            _ => ActionSubcommand::Skip(Skip{sign_option: SignTransaction::choose_sign_option()}),
+            _ => ActionSubcommand::Skip(SkipAction{sign_option: SignTransaction::choose_sign_option()}),
 
         }
     }

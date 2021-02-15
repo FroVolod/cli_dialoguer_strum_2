@@ -20,20 +20,20 @@ use super::{
 
 
 #[derive(Debug)]
-pub struct AddAccessKey {
+pub struct AddAccessKeyAction {
     // pub access_key: String,
     pub next_action: Box<ActionSubcommand>
 }
 
 #[derive(Debug, StructOpt)]
-pub struct CliAddAccessKey {
+pub struct CliAddAccessKeyAction {
     // access_key: Option<String>,
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand>
 }
 
-impl From<CliAddAccessKey> for AddAccessKey {
-    fn from(item: CliAddAccessKey) -> Self {
+impl From<CliAddAccessKeyAction> for AddAccessKeyAction {
+    fn from(item: CliAddAccessKeyAction) -> Self {
         // let access_key: String = match item.access_key {
         //     Some(cli_access_key) => cli_access_key,
         //     None => DeleteAccessKey::input_access_key()
@@ -44,7 +44,7 @@ impl From<CliAddAccessKey> for AddAccessKey {
             },
             None => Box::new(ActionSubcommand::choose_action_command()) 
         };
-        AddAccessKey {
+        AddAccessKeyAction {
             // access_key,
             next_action
         }

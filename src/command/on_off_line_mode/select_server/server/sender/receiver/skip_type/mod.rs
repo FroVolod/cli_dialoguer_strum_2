@@ -27,7 +27,7 @@ use sign_alternative::{
 
 
 #[derive(Debug)]
-pub struct Skip {
+pub struct SkipAction {
     pub sign_option: SignTransaction
 }
 
@@ -38,7 +38,7 @@ pub enum SignTransaction {
 }
 
 #[derive(Debug, StructOpt)]
-pub struct CliSkip {
+pub struct CliSkipAction {
     #[structopt(subcommand)]
     sign_option: Option<CliSignTransaction> 
 }
@@ -49,13 +49,13 @@ pub enum CliSignTransaction {
     SignAlternative(CliSignAlternative)
 }
 
-impl Default for Skip {
+impl Default for SkipAction {
     fn default() -> Self {
         Self{sign_option: SignTransaction::SignPrivateKey(SignPrivateKey::default())}
     }
 }
 
-impl Skip {
+impl SkipAction {
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
@@ -107,13 +107,13 @@ impl SignTransaction {
     }
 }
 
-impl From<CliSkip> for Skip {
-    fn from(item: CliSkip) -> Self {
+impl From<CliSkipAction> for SkipAction {
+    fn from(item: CliSkipAction) -> Self {
         let sign_option: SignTransaction = match item.sign_option {
             Some(cli_sign_transaction) => SignTransaction::from(cli_sign_transaction),
             None => SignTransaction::choose_sign_option()
         };
-        Skip {sign_option}
+        SkipAction {sign_option}
     }
 }
 

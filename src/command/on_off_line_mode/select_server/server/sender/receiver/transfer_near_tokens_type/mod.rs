@@ -23,12 +23,12 @@ use super::{
 
 
 #[derive(Debug)]
-pub struct TransferNEARTokens {
+pub struct TransferNEARTokensAction {
     pub amount: NearBalance,
     pub next_action: Box<ActionSubcommand>
 }
 
-impl TransferNEARTokens {
+impl TransferNEARTokensAction {
     #[async_recursion(?Send)]
     pub async fn process(
         self,
@@ -68,7 +68,7 @@ impl TransferNEARTokens {
 }
 
 #[derive(Debug, StructOpt)]
-pub struct CliTransferNEARTokens {
+pub struct CliTransferNEARTokensAction {
     #[structopt(long)]
     amount: Option<NearBalance>,
     #[structopt(subcommand)]
@@ -107,8 +107,8 @@ impl FromStr for NearBalance {
     }
 }
 
-impl From<CliTransferNEARTokens> for TransferNEARTokens {
-    fn from(item: CliTransferNEARTokens) -> Self {
+impl From<CliTransferNEARTokensAction> for TransferNEARTokensAction {
+    fn from(item: CliTransferNEARTokensAction) -> Self {
         let amount: NearBalance = match item.amount {
             Some(cli_amount) => cli_amount,
             None => NearBalance::input_amount()
@@ -119,7 +119,7 @@ impl From<CliTransferNEARTokens> for TransferNEARTokens {
             },
             None => Box::new(ActionSubcommand::choose_action_command()) 
         };
-        TransferNEARTokens {
+        TransferNEARTokensAction {
             amount,
             next_action
         }

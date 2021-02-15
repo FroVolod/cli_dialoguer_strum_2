@@ -20,23 +20,23 @@ use super::{
 
 
 #[derive(Debug)]
-pub struct DeleteAccount {
+pub struct DeleteAccountAction {
     pub beneficiary_id: String,
     pub next_action: Box<ActionSubcommand>
 }
 
 #[derive(Debug, StructOpt)]
-pub struct CliDeleteAccount {
+pub struct CliDeleteAccountAction {
     beneficiary_id: Option<String>,
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand>
 }
 
-impl From<CliDeleteAccount> for DeleteAccount {
-    fn from(item: CliDeleteAccount) -> Self {
+impl From<CliDeleteAccountAction> for DeleteAccountAction {
+    fn from(item: CliDeleteAccountAction) -> Self {
         let beneficiary_id: String = match item.beneficiary_id {
             Some(cli_account_id) => cli_account_id,
-            None => DeleteAccount::input_beneficiary_id()
+            None => DeleteAccountAction::input_beneficiary_id()
         };
         let next_action: Box<ActionSubcommand> = match item.next_action {
             Some(cli_skip_action) => {
@@ -44,14 +44,14 @@ impl From<CliDeleteAccount> for DeleteAccount {
             },
             None => Box::new(ActionSubcommand::choose_action_command()) 
         };
-        DeleteAccount {
+        DeleteAccountAction {
             beneficiary_id,
             next_action
         }
     }
 }
 
-impl DeleteAccount {
+impl DeleteAccountAction {
     pub fn input_beneficiary_id() -> String {
         Input::new()
             .with_prompt("Enter the beneficiary ID to delete this account ID")

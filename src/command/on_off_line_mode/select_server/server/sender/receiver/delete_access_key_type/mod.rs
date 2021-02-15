@@ -20,23 +20,23 @@ use super::{
 
 
 #[derive(Debug)]
-pub struct DeleteAccessKey {
+pub struct DeleteAccessKeyAction {
     pub access_key: String,
     pub next_action: Box<ActionSubcommand>
 }
 
 #[derive(Debug, StructOpt)]
-pub struct CliDeleteAccessKey {
+pub struct CliDeleteAccessKeyAction {
     access_key: Option<String>,
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand>
 }
 
-impl From<CliDeleteAccessKey> for DeleteAccessKey {
-    fn from(item: CliDeleteAccessKey) -> Self {
+impl From<CliDeleteAccessKeyAction> for DeleteAccessKeyAction {
+    fn from(item: CliDeleteAccessKeyAction) -> Self {
         let access_key: String = match item.access_key {
             Some(cli_access_key) => cli_access_key,
-            None => DeleteAccessKey::input_access_key()
+            None => DeleteAccessKeyAction::input_access_key()
         };
         let next_action: Box<ActionSubcommand> = match item.next_action {
             Some(cli_skip_action) => {
@@ -44,14 +44,14 @@ impl From<CliDeleteAccessKey> for DeleteAccessKey {
             },
             None => Box::new(ActionSubcommand::choose_action_command()) 
         };
-        DeleteAccessKey {
+        DeleteAccessKeyAction {
             access_key,
             next_action
         }
     }
 }
 
-impl DeleteAccessKey {
+impl DeleteAccessKeyAction {
     pub fn input_access_key() -> String {
         Input::new()
             .with_prompt("Enter the access key to remove it")
