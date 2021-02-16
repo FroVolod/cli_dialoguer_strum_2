@@ -12,7 +12,7 @@ use dialoguer::{
     theme::ColorfulTheme,
     console::Term
 };
-use near_primitives::borsh::BorshSerialize;
+use near_primitives::{borsh::BorshSerialize, hash::CryptoHash};
 
 
 mod select_server;
@@ -51,8 +51,16 @@ impl OnOffLineMode {
         println!("OnOffLineMode - prepopulated_unsigned_transaction :      {:?}", prepopulated_unsigned_transaction);
         match self.mode {
             Mode::Online(online_args) => {
-                println!("Online args:  {:?}", &online_args)
+                println!("Online args:  {:?}", &online_args);                
                 // реализовать online запрос для block_hash и nonce
+                let nonce = online_args.nonce.clone();
+                let block_hash = online_args.block_hash.clone();
+                let unsigned_transaction = near_primitives::transaction::Transaction {                    
+                    block_hash,
+                    nonce,
+                    .. prepopulated_unsigned_transaction
+                };
+                online_args.process(unsigned_transaction).await
             },
             Mode::Offline(offline_args) => {
                 println!("Offline args:  {:?}", &offline_args);
@@ -107,8 +115,12 @@ impl Mode {
         match select_mode {
             Some(0) => {
                 println!("============== {:?}", choose_mode[0]);
+                let nonce: u64 = 55;
+                let block_hash: CryptoHash = crate::common::BlobAsBase58String::<near_primitives::hash::CryptoHash>::from_str("C2tEMtPNkJ2Gh8tw24Bs7a4sXbd8APL988d3fqic1opc").unwrap().into_inner();        
                 let selected_server = SelectServer::select_server();
                 Mode::Online(OnlineArgs {
+                        nonce,
+                        block_hash,
                         selected_server
                     }) 
             },
@@ -138,17 +150,17 @@ pub struct OfflineArgs {
     // selected_server: SelectServer
 }
 
-impl  OfflineArgs {
-    pub async fn process(
-        self,
-        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
-    ) {
-        println!("OfflineArgs process:        {:?}", prepopulated_unsigned_transaction);
-        let selected_server_url = "".to_string(); 
-        self.send_from.process(prepopulated_unsigned_transaction, selected_server_url).await;
-        // self.selected_server.process(prepopulated_unsigned_transaction).await;
-    }
-}
+// impl  OfflineArgs {
+//     pub async fn process(
+//         self,
+//         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+//     ) {
+//         println!("OfflineArgs process:        {:?}", prepopulated_unsigned_transaction);
+//         let selected_server_url = "".to_string(); 
+//         self.send_from.process(prepopulated_unsigned_transaction, selected_server_url).await;
+//         // self.selected_server.process(prepopulated_unsigned_transaction).await;
+//     }
+// }
 
 #[derive(Debug, StructOpt)]
 pub struct CliOfflineArgs {
@@ -163,22 +175,33 @@ pub struct CliOfflineArgs {
 
 #[derive(Debug)]
 pub struct OnlineArgs {
+    nonce: u64,
+    block_hash: near_primitives::hash::CryptoHash,
     selected_server: SelectServer
 }
 
 #[derive(Debug, Default, StructOpt)]
 pub struct CliOnlineArgs {
+    nonce: Option<u64>,
+    block_hash: Option<crate::common::BlobAsBase58String<near_primitives::hash::CryptoHash>>,
     #[structopt(subcommand)]
     selected_server: Option<CliSelectServer> 
 }
 
 impl From<CliOnlineArgs> for OnlineArgs {
     fn from(item: CliOnlineArgs) -> Self {
+        let nonce: u64 = 55;
+        let block_hash: CryptoHash = Default::default();
+        // let block_hash: CryptoHash = crate::common::BlobAsBase58String::<near_primitives::hash::CryptoHash>::from_str("EKmWQyhJCUKjovT3AYgQ5Y8oddUfAFg7wDocHjz8xpn1").unwrap().into_inner();
         let selected_server = match item.selected_server {
             Some(cli_selected_server) => SelectServer::from(cli_selected_server),
             None => SelectServer::select_server()
         };
-        OnlineArgs {selected_server}
+        OnlineArgs {
+            nonce,
+            block_hash,
+            selected_server
+        }
     }
 }
 
@@ -210,6 +233,15 @@ impl From<CliOfflineArgs> for OfflineArgs {
 }
 
 impl OfflineArgs {
+    pub async fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+    ) {
+        println!("OfflineArgs process:        {:?}", prepopulated_unsigned_transaction);
+        let selected_server_url = "".to_string(); 
+        self.send_from.process(prepopulated_unsigned_transaction, selected_server_url).await;
+        // self.selected_server.process(prepopulated_unsigned_transaction).await;
+    }
     fn input_nonce() -> u64 {
         Input::new()
             .with_prompt("Enter transaction nonce (query the access key information with
@@ -226,6 +258,34 @@ impl OfflineArgs {
             
     }
 }
+
+impl OnlineArgs {
+    pub async fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+    ) {
+        println!("OnlineArgs process:        {:?}", prepopulated_unsigned_transaction);
+        // let selected_server_url = "".to_string(); 
+        // self.send_from.process(prepopulated_unsigned_transaction, selected_server_url).await;
+        self.selected_server.process(prepopulated_unsigned_transaction).await;
+    }
+    fn input_nonce() -> u64 {    // запрос 
+        Input::new()
+            .with_prompt("Enter transaction nonce (query the access key information with
+                `near-cli utils view-access-key frol4.testnet ed25519:...` incremented by 1)")
+            .interact_text()
+            .unwrap()
+    }
+    fn input_block_hash() -> near_primitives::hash::CryptoHash {    // запрос
+        let input_block_hash: String = Input::new()
+            .with_prompt("Enter recent block hash:")
+            .interact_text()
+            .unwrap();
+        crate::common::BlobAsBase58String::<near_primitives::hash::CryptoHash>::from_str(&input_block_hash).unwrap().into_inner()
+            
+    }
+}
+
 
 #[derive(Debug, Display, EnumVariantNames, StructOpt)]
 pub enum CliMode {
