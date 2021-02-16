@@ -34,6 +34,7 @@ impl SignPrivateKey {
     ) {
         println!("SignPrivateKey process: self:       {:?}", &self);
         println!("SignPrivateKey process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        println!("SignPrivateKey process: selected_server_url:       {:?}", &selected_server_url);
         let public_key = near_crypto::PublicKey::from_str(&self.signer_public_key).unwrap();
         let signer_secret_key = near_crypto::SecretKey::from_str(&self.signer_secret_key).unwrap();
         let unsigned_transaction = near_primitives::transaction::Transaction {
@@ -47,21 +48,32 @@ impl SignPrivateKey {
 
         let signed_transaction =
             near_primitives::transaction::SignedTransaction::new(signature, unsigned_transaction);
-        println!("---  Signed transaction:   ---    {:#?}", signed_transaction);
-        
-        let transaction_info = near_jsonrpc_client::new_client(&selected_server_url)
-            .broadcast_tx_commit(near_primitives::serialize::to_base64(
-                signed_transaction
-                    .try_to_vec()
-                    .expect("Transaction is not expected to fail on serialization"),
-            ))
-            .await
-            .map_err(|err| {
-                println!("Error transaction:  {:?}",&err)
-            })
-            .unwrap();
 
-        println!("Success: {:#?}", transaction_info);
+        if selected_server_url.is_empty() {
+                println!("---  Signed transaction:   ---    {:#?}", signed_transaction);
+
+                let serialize_to_base64 = near_primitives::serialize::to_base64(
+                        signed_transaction
+                            .try_to_vec()
+                            .expect("Transaction is not expected to fail on serialization"),
+                    );
+                println!("---  serialize_to_base64:   ---    {:#?}", &serialize_to_base64)
+            }
+        else {
+                let transaction_info = near_jsonrpc_client::new_client(&selected_server_url)
+                    .broadcast_tx_commit(near_primitives::serialize::to_base64(
+                        signed_transaction
+                            .try_to_vec()
+                            .expect("Transaction is not expected to fail on serialization"),
+                    ))
+                    .await
+                    .map_err(|err| {
+                        println!("Error transaction:  {:?}",&err)
+                    })
+                    .unwrap();
+
+                println!("Success: {:#?}", transaction_info);
+            }
     }
 
     pub fn signer_public_key() -> String {

@@ -20,6 +20,16 @@ use select_server::{
     SelectServer,
     CliSelectServer
 };
+mod server;
+use server::{
+    Server,
+    SendFrom,
+    CliSendFrom,
+    CliServer,
+    CliCustomServer,
+    // ActionSubcommand
+};
+
 
 
 #[derive(Debug, StructOpt)]
@@ -106,11 +116,13 @@ impl Mode {
                 println!("============== {:?}", choose_mode[1]);
                 let nonce: u64 = OfflineArgs::input_nonce();
                 let block_hash = OfflineArgs::input_block_hash();
-                let selected_server = SelectServer::select_server();
+                let send_from: SendFrom = SendFrom::send_from();
+                // let selected_server = SelectServer::select_server();
                 Mode::Offline(OfflineArgs {
                     nonce,
                     block_hash,
-                    selected_server
+                    send_from
+                    // selected_server
                 })
             }
             _ => unreachable!("Error")
@@ -122,7 +134,8 @@ impl Mode {
 pub struct OfflineArgs {
     nonce: u64,
     block_hash: near_primitives::hash::CryptoHash,
-    selected_server: SelectServer
+    send_from: SendFrom
+    // selected_server: SelectServer
 }
 
 impl  OfflineArgs {
@@ -131,7 +144,9 @@ impl  OfflineArgs {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) {
         println!("OfflineArgs process:        {:?}", prepopulated_unsigned_transaction);
-        self.selected_server.process(prepopulated_unsigned_transaction).await;
+        let selected_server_url = "".to_string(); 
+        self.send_from.process(prepopulated_unsigned_transaction, selected_server_url).await;
+        // self.selected_server.process(prepopulated_unsigned_transaction).await;
     }
 }
 
@@ -142,7 +157,8 @@ pub struct CliOfflineArgs {
     #[structopt(long)]
     block_hash: Option<crate::common::BlobAsBase58String<near_primitives::hash::CryptoHash>>,
     #[structopt(subcommand)]
-    selected_server: Option<CliSelectServer> 
+    pub send_from: Option<CliSendFrom>
+    // selected_server: Option<CliSelectServer> 
 }
 
 #[derive(Debug)]
@@ -176,14 +192,19 @@ impl From<CliOfflineArgs> for OfflineArgs {
             Some(cli_block_hash) => cli_block_hash.into_inner(),
             None => OfflineArgs::input_block_hash()
         };
-        let selected_server = match item.selected_server {
-            Some(cli_selected_server) => SelectServer::from(cli_selected_server),
-            None => SelectServer::select_server()
+        let send_from: SendFrom = match item.send_from {
+            Some(cli_send_from) => SendFrom::from(cli_send_from),
+            None => SendFrom::send_from()
         };
+        // let selected_server = match item.selected_server {
+        //     Some(cli_selected_server) => SelectServer::from(cli_selected_server),
+        //     None => SelectServer::select_server()
+        // };
         OfflineArgs {
             nonce,
             block_hash,
-            selected_server
+            send_from
+            // selected_server
         }
     }
 }

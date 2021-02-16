@@ -66,7 +66,7 @@ impl SendFrom {
 #[derive(Debug, StructOpt)]
 pub struct CliServer {
     #[structopt(subcommand)]
-    send_from: Option<CliSendFrom> 
+    pub send_from: Option<CliSendFrom> 
     // #[structopt(subcommand)]
     // pub transaction_subcommand: ActionSubcommand
 }

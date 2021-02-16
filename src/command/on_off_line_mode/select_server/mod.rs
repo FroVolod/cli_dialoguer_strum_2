@@ -19,8 +19,8 @@ use consts::{
     MAINNET_API_SERVER_URL,
     BETANET_API_SERVER_URL,
 };
-mod server;
-use server::{
+// mod server;
+use super::{
     Server,
     SendFrom,
     CliServer,
