@@ -1,8 +1,5 @@
 use structopt::StructOpt;
-use std::str::FromStr;
 use strum_macros::{
-    Display,
-    EnumString,
     EnumVariantNames,
 };
 use strum::VariantNames;
@@ -90,36 +87,26 @@ pub enum CliActionSkipSubcommand {
     Skip(CliSkipAction)
 }
 
-
-// impl Default for ActionSubcommand {
-//     fn default() -> Self {
-//         ActionSubcommand::Skip(Skip{
-//             sign_option: SignTransaction::choose_sign_option()
-//         })
-//     }
-// }
-
 impl ActionSubcommand {
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
-        println!("ActionSubcommand process: self:       {:?}", &self);
-        println!("ActionSubcommand process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        println!("ActionSubcommand process: self:\n       {:?}", &self);
+        println!("ActionSubcommand process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
         match self {
             ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(prepopulated_unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},
             // ActionSubcommand::StakeNEARTokens(args_stake) => {},
-            ActionSubcommand::CreateAccount(args_create_account) => {},
-            ActionSubcommand::DeleteAccount(args_delete_account) => {},
-            ActionSubcommand::AddAccessKey(args_add_access_key) => {},
-            ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
-            ActionSubcommand::Skip(args_skip) => {},
+            // ActionSubcommand::CreateAccount(args_create_account) => {},
+            // ActionSubcommand::DeleteAccount(args_delete_account) => {},
+            // ActionSubcommand::AddAccessKey(args_add_access_key) => {},
+            // ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
+            // ActionSubcommand::Skip(args_skip) => {},
             _ => unreachable!("Error")
         }
     }
-
     pub fn choose_action_command() -> Self {
         let action_subcommands= ActionSubcommand::VARIANTS;
         let select_action_subcommand = Select::with_theme(&ColorfulTheme::default())
@@ -179,15 +166,13 @@ impl Receiver {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
-        println!("Receiver process: self:       {:?}", &self);
+        println!("Receiver process: self:\n       {:?}", &self);
         let unsigned_transaction = near_primitives::transaction::Transaction {
             receiver_id: self.account_id.clone(),
             .. prepopulated_unsigned_transaction
         };
         self.transaction_subcommand.process(unsigned_transaction, selected_server_url).await;
-
     }
-
     pub fn input_account_id() -> String {
         Input::new()
             .with_prompt("What is the account ID of the receiver?")
@@ -215,7 +200,7 @@ impl From<CliReceiver> for Receiver {
 
 impl From<CliActionSubcommand> for ActionSubcommand {
     fn from(item: CliActionSubcommand) -> Self {
-        println!("-----------  From<CliActionSubcommand> for ActionSubcommand   -------------- {:?}", &item);
+        println!("-----------  From<CliActionSubcommand> for ActionSubcommand   -----------\n   {:?}", &item);
         match item {
             CliActionSubcommand::TransferNEARTokens(cli_transfer_near_token) => {
                 let transfer_near_token: TransferNEARTokensAction = TransferNEARTokensAction::from(cli_transfer_near_token);
@@ -245,7 +230,6 @@ impl From<CliActionSubcommand> for ActionSubcommand {
 impl From<CliActionSkipSubcommand> for ActionSubcommand {
     fn from(item: CliActionSkipSubcommand) -> Self {
         match item {
-            // _ => ActionSubcommand::Skip(SkipAction{sign_option: SignTransaction::choose_sign_option()}),
             CliActionSkipSubcommand::Skip(cli_skip_action) => {
                 let skip_action: SkipAction = SkipAction::from(cli_skip_action);
                 ActionSubcommand::Skip(skip_action)
@@ -253,11 +237,4 @@ impl From<CliActionSkipSubcommand> for ActionSubcommand {
 
         }
     }
-    // fn from(item: CliActionSkipSubcommand) -> Self {
-    //     let sign_option: SignTransaction = match item.sign_option {
-    //         Some(cli_sign_transaction) => SignTransaction::from(cli_sign_transaction),
-    //         None => SignTransaction::choose_sign_option()
-    //     };
-    //     SkipAction {sign_option}
-    // }
 }

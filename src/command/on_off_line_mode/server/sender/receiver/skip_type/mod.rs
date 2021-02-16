@@ -1,13 +1,6 @@
 use structopt::StructOpt;
-use strum_macros::{
-    Display,
-    EnumString,
-    EnumVariantNames,
-};
-use strum::VariantNames;
 use dialoguer::{
     Select,
-    Input,
     theme::ColorfulTheme,
     console::Term
 };
@@ -22,8 +15,6 @@ use sign_alternative::{
     SignAlternative,
     CliSignAlternative
 };
-
-
 
 
 #[derive(Debug)]
@@ -49,21 +40,14 @@ pub enum CliSignTransaction {
     SignAlternative(CliSignAlternative)
 }
 
-
-// impl Default for SkipAction {
-//     fn default() -> Self {
-//         Self{sign_option: SignTransaction::SignPrivateKey(SignPrivateKey::default())}
-//     }
-// }
-
 impl SkipAction {
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
-        println!("Skip process: self:       {:?}", &self);
-        println!("Skip process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        println!("Skip process:\n       {:?}", &self);
+        println!("Skip process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
         self.sign_option.process(prepopulated_unsigned_transaction, selected_server_url).await;
     }
 }
@@ -78,11 +62,9 @@ impl SignTransaction {
         println!("SignTransaction process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
         match self {
             SignTransaction::SignPrivateKey(keys) => keys.process(prepopulated_unsigned_transaction, selected_server_url).await,
-            SignTransaction::SignAlternative(chain) => chain.process(prepopulated_unsigned_transaction, selected_server_url),
-            _ => unreachable!("Error")
+            SignTransaction::SignAlternative(chain) => chain.process(prepopulated_unsigned_transaction, selected_server_url)
         }
     }
-
     pub fn choose_sign_option() -> Self {
         let sign_options = vec![
             "Yes, I want to sign the transaction with my private key",

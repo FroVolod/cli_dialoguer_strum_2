@@ -1,8 +1,6 @@
 use structopt::StructOpt;
-use std::str::FromStr;
 use strum_macros::{
     Display,
-    EnumString,
     EnumVariantNames,
 };
 use strum::VariantNames;
@@ -19,14 +17,13 @@ use consts::{
     MAINNET_API_SERVER_URL,
     BETANET_API_SERVER_URL,
 };
-// mod server;
 use super::{
     Server,
     SendFrom,
     CliServer,
     CliCustomServer,
-    // ActionSubcommand
 };
+
 
 #[derive(Debug, Display, EnumVariantNames)]
 pub enum SelectServer {
@@ -68,8 +65,8 @@ impl SelectServer {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) {
-        println!("SelectServer process:  self:         {:?}", &self);
-        println!("SelectServer process:  prepopulated_unsigned_transaction:         {:?}", prepopulated_unsigned_transaction);
+        println!("SelectServer process:  self:\n         {:?}", &self);
+        println!("SelectServer process:  prepopulated_unsigned_transaction:\n         {:?}", prepopulated_unsigned_transaction);
         match self {
             SelectServer::Testnet(server) => {
                 println!("server url:   {:?}", &server.url);
@@ -78,10 +75,8 @@ impl SelectServer {
             SelectServer::Mainnet(server) => {},
             SelectServer::Betanet(server) => {},
             SelectServer::Custom(server) => {},
-            _ => unreachable!("Error")
         }
     }
-
     pub fn select_server() -> Self {
         println!("Works select server!");
         let servers= SelectServer::VARIANTS;

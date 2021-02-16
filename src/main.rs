@@ -1,7 +1,4 @@
-use std::str::FromStr;
-
 use structopt::StructOpt;
-use strum_macros::{Display, EnumString, EnumVariantNames};
 
 pub(crate) mod common;
 
@@ -15,18 +12,14 @@ use command::{
 
 #[derive(Debug)]
 struct Args {
-    name: String,
     subcommand: ArgsCommand,
 }
 
 #[derive(Debug, Default, StructOpt)]
 struct CliArgs {
-    #[structopt(long)]
-    name: Option<String>,
     #[structopt(subcommand)]
     subcommand: Option<CliCommand>,
 }
-
 
 impl From<CliArgs> for Args {
     fn from(item: CliArgs) -> Self {
@@ -35,7 +28,6 @@ impl From<CliArgs> for Args {
             None => ArgsCommand::choose_command(),
         };
         Self {
-            name: item.name.unwrap_or_default(),
             subcommand,
         }
     }
@@ -43,10 +35,10 @@ impl From<CliArgs> for Args {
 
 impl Args {
     async fn process(self) -> String {
-        println!("===========        self       ===========            {:?}", &self.subcommand);
+        println!("===========    Args process   ===========\n    {:?}", &self.subcommand);
         let transaction_command = &self.subcommand;
         println!("{:?}", &transaction_command);
-        let on_off_line_mode = match self.subcommand {
+        match self.subcommand {
             ArgsCommand::ConstructTransactionCommand(mode) => {
                 let unsigned_transaction = near_primitives::transaction::Transaction {
                     signer_id: "".to_string(),
@@ -60,25 +52,17 @@ impl Args {
             },
             _ => unreachable!("Error") 
         };
-
-
         "Ok".to_string()
     }
 }
 
 
 fn main() {
-    // let cli = CliArgs::default();
     let cli = CliArgs::from_args();
-    println!("cli: {:?}", cli);
-
     let args = Args::from(cli);
     println!("args {:#?}", args);
-    println!();
-    // args.process();
 
     actix::System::builder()
     .build()
     .block_on(async move { args.process().await });
-
 }

@@ -1,15 +1,6 @@
 use structopt::StructOpt;
-use strum_macros::{
-    Display,
-    EnumString,
-    EnumVariantNames,
-};
-use strum::VariantNames;
 use dialoguer::{
-    Select,
     Input,
-    theme::ColorfulTheme,
-    console::Term
 };
 use std::num::ParseIntError;
 use std::str::FromStr;
@@ -17,7 +8,6 @@ use async_recursion::async_recursion;
 
 use super::{
     ActionSubcommand,
-    CliActionSubcommand,
     CliActionSkipSubcommand
 };
 
@@ -35,11 +25,10 @@ impl TransferNEARTokensAction {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
-        println!("TransferNEARTokens process: self:       {:?}", &self);
-        println!("TransferNEARTokens process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        println!("TransferNEARTokens process: self:\n       {:?}", &self);
+        println!("TransferNEARTokens process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
         let amount = match self.amount {
-            NearBalance(num) => num,
-            _ => unreachable!("Error")
+            NearBalance(num) => num
         };
         let action = near_primitives::transaction::Action::Transfer(
             near_primitives::transaction::TransferAction {
@@ -52,7 +41,7 @@ impl TransferNEARTokensAction {
             actions,
             .. prepopulated_unsigned_transaction
         };
-        println!("unsigned_transaction.    {:?}", &unsigned_transaction);
+        println!("unsigned_transaction:\n    {:?}", &unsigned_transaction);
         match *self.next_action {
             ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},
@@ -72,7 +61,6 @@ pub struct CliTransferNEARTokensAction {
     amount: Option<NearBalance>,
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand> 
-    // next_action: Option<Box<CliActionSubcommand>>  // CliActionSkipSubcommand
 }
 
 impl NearBalance {
@@ -92,6 +80,8 @@ impl FromStr for NearBalance {
     type Err = ParseIntError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let number: u128 = s.parse().unwrap_or_else(|ParseIntError| -> u128 {
+            let mut s: String = s.to_string().clone();
+            s.make_ascii_uppercase();
             match s.contains("NEAR") {
                 true => {
                     let num:u128 = s.trim_matches(char::is_alphabetic)

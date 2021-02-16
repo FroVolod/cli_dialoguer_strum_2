@@ -1,13 +1,10 @@
 use structopt::StructOpt;
 use strum_macros::{
-    Display,
-    EnumString,
     EnumVariantNames,
 };
 use strum::VariantNames;
 use dialoguer::{
     Select,
-    Input,
     theme::ColorfulTheme,
     console::Term
 };
@@ -16,16 +13,14 @@ mod on_off_line_mode;
 use on_off_line_mode::{CliOnOffLineMode, Mode, OnOffLineMode};
 
 
-#[derive(Debug, Display, EnumVariantNames, StructOpt)]
+#[derive(Debug, EnumVariantNames, StructOpt)]
 #[strum(serialize_all = "kebab_case")]
 pub enum CliCommand {
     ConstructTransactionCommand(CliOnOffLineMode),
     Utils,
 }
 
-
-#[derive(Debug, Display, EnumVariantNames)]
-#[strum(serialize_all = "kebab_case")]
+#[derive(Debug, EnumVariantNames)]
 pub enum ArgsCommand {
     ConstructTransactionCommand(OnOffLineMode),
     Utils,
@@ -35,10 +30,6 @@ impl From<CliCommand> for ArgsCommand {
     fn from(item: CliCommand) -> Self {
         match item {
             CliCommand::ConstructTransactionCommand(cli_onoffline_mode) => {
-               // let onoffline_mode = match cli_onoffline_mode.mode {
-                 //     Some(mode) => OnOffLineMode::from(mode),
-                //     None => OnOffLineMode::choose_command(),
-                // };
                 let onoffline_mode = OnOffLineMode::from(cli_onoffline_mode);
                 ArgsCommand::ConstructTransactionCommand(onoffline_mode)
             }
@@ -65,7 +56,7 @@ impl ArgsCommand {
             Some(1) => {
                 println!("============== {:?}", commands[1]);
                 Self::Utils
-            }
+            },
             _ => unreachable!("Error")
         }
     }

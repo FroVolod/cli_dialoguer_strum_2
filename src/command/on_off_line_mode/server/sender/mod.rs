@@ -1,16 +1,6 @@
 use structopt::StructOpt;
-use std::str::FromStr;
-use strum_macros::{
-    Display,
-    EnumString,
-    EnumVariantNames,
-};
-use strum::VariantNames;
 use dialoguer::{
-    Select,
     Input,
-    theme::ColorfulTheme,
-    console::Term
 };
 
 mod receiver;
@@ -18,11 +8,7 @@ use receiver::{
     Receiver,
     CliReceiver,
     ActionSubcommand,
-    CliActionSubcommand
 };
-
-use super::SendFrom;
-
 
 
 #[derive(Debug)]
@@ -47,21 +33,19 @@ pub enum CliSendTo {
     Receiver(CliReceiver),
 }
 
-
 impl Sender {
     pub async fn process(
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
-        println!("Sender process: self     {:?}", &self);
+        println!("Sender process:\n    {:?}", &self);
         let unsigned_transaction = near_primitives::transaction::Transaction {
             signer_id: self.account_id.clone(),
             .. prepopulated_unsigned_transaction
         };
         self.send_to.process(unsigned_transaction, selected_server_url).await;
     }
-
     pub fn input_account_id() -> String {
         Input::new()
             .with_prompt("What is the account ID of the sender?")
@@ -70,10 +54,8 @@ impl Sender {
     }
 }
 
-
 impl From<CliSender> for Sender {
     fn from(item: CliSender) -> Self {
-        println!("    ///////  From<CliSender> for Sender   /////////// item: CliSender:   {:?}", item);
         let account_id: String = match item.account_id {
             Some(cli_account_id) => cli_account_id,
             None => Sender::input_account_id()
@@ -95,14 +77,12 @@ impl SendTo {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
-        println!("SendTo process: self:       {:?}", &self);
-        println!("SendTo process: prepopulated_unsigned_transaction:       {:?}", &prepopulated_unsigned_transaction);
+        println!("SendTo process: self:\n       {:?}", &self);
+        println!("SendTo process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
         match self {
-            SendTo::Receiver(receiver) => receiver.process(prepopulated_unsigned_transaction, selected_server_url).await,
-            _ => unreachable!("Error")
+            SendTo::Receiver(receiver) => receiver.process(prepopulated_unsigned_transaction, selected_server_url).await
         }
     }
-
     pub fn send_to() -> Self {
         let account_id: String = Receiver::input_account_id();
         let transaction_subcommand: ActionSubcommand = ActionSubcommand::choose_action_command();
@@ -119,53 +99,7 @@ impl From<CliSendTo> for SendTo {
             CliSendTo::Receiver(cli_receiver) => {
                 let receiver = Receiver::from(cli_receiver);
                 SendTo::Receiver(receiver)
-            },
-            _ => unreachable!("Error")
+            }
         }
     }
 }
-
-// impl Authentication {
-//     pub fn choose_authentication() -> Self {// реализовать функцию
-
-//         println!("Works Authentication!");
-//         let authentication_options = vec![
-//             "Yes, I want to sign the transaction with my private key",
-//             "No, I want to construct the transaction and sign it somewhere else",
-//         ];
-//         let select_authentication_options = Select::with_theme(&ColorfulTheme::default())
-//             .with_prompt("Would you like to sign the transaction?")
-//             .items(&authentication_options)
-//             .default(0)
-//             .interact_on_opt(&Term::stderr())
-//             .unwrap();
-//         // let send_from = SendFrom::send_from();
-//         match select_authentication_options {
-//             Some(0) => Authentication::private_key(SignKey {
-//                 private_key: SignKey::input_private_key(),
-//                 public_key: SignKey::input_public_key(),
-//                 send_to: SendTo::send_to()
-//             }),
-//             Some(1) => Authentication::alternative(SignAlternative {
-//                 key_chain: SignAlternative::input_key_chain(),
-//                 send_to: SendTo::send_to()
-//             }),
-//             _ => unreachable!("Error")
-//         }
-//     }
-// }
-
-// impl From<CliAuthentication> for Authentication {
-//     fn from(item: CliAuthentication) -> Self {
-//         match item {
-//             CliAuthentication::private_key(cli_sign_key) => {
-//                 let sign_key = SignKey::from(cli_sign_key);
-//                 Authentication::private_key(sign_key)
-//             },
-//             CliAuthentication::alternative(cli_sign_alternative) => {
-//                 let sign_alternative = SignAlternative::from(cli_sign_alternative);
-//                 Authentication::alternative(sign_alternative)
-//             },
-//         }
-//     }
-// }
