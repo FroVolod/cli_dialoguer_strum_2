@@ -70,12 +70,11 @@ impl CreateAccountAction {
             // ActionSubcommand::CallFunction(args_function) => {},
             // ActionSubcommand::StakeNEARTokens(args_stake) => {},
             ActionSubcommand::CreateAccount(args_create_account) => args_create_account.process(unsigned_transaction, selected_server_url).await,
-            // ActionSubcommand::DeleteAccount(args_delete_account) => {},
+            ActionSubcommand::DeleteAccount(args_delete_account) => args_delete_account.process(unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::AddAccessKey(args_add_access_key) => {},
             // ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
             ActionSubcommand::Skip(args_skip) => args_skip.process(unsigned_transaction, selected_server_url).await,
             _ => unreachable!("Error")
         }
-
     }
 }

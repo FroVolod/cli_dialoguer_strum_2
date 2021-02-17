@@ -11,6 +11,7 @@ use dialoguer::{
     theme::ColorfulTheme,
     console::Term
 };
+use async_recursion::async_recursion;
 
 use super::{
     ActionSubcommand,
@@ -53,10 +54,72 @@ impl From<CliDeleteAccountAction> for DeleteAccountAction {
 }
 
 impl DeleteAccountAction {
+    #[async_recursion(?Send)]
+    pub async fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("DeleteAccountAction process: self:\n       {:?}", &self);
+        println!("DeleteAccountAction process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
+        let beneficiary_id: String =
+            if let true = self.beneficiary_id.is_empty() {
+                prepopulated_unsigned_transaction.signer_id.clone()
+            } else {
+                self.beneficiary_id.clone()
+            };
+        let action = near_primitives::transaction::Action::DeleteAccount(
+            near_primitives::transaction::DeleteAccountAction {
+                beneficiary_id
+            }
+        );
+        let mut actions= prepopulated_unsigned_transaction.actions.clone();
+        actions.push(action);
+        let unsigned_transaction = near_primitives::transaction::Transaction {
+            actions,
+            .. prepopulated_unsigned_transaction
+        };
+        println!("unsigned_transaction:\n    {:?}", &unsigned_transaction);
+        match *self.next_action {
+            ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url).await,
+            // ActionSubcommand::CallFunction(args_function) => {},
+            // ActionSubcommand::StakeNEARTokens(args_stake) => {},
+            ActionSubcommand::CreateAccount(args_create_account) => args_create_account.process(unsigned_transaction, selected_server_url).await,
+            ActionSubcommand::DeleteAccount(args_delete_account) => args_delete_account.process(unsigned_transaction, selected_server_url).await,
+            // ActionSubcommand::AddAccessKey(args_add_access_key) => {},
+            // ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
+            ActionSubcommand::Skip(args_skip) => args_skip.process(unsigned_transaction, selected_server_url).await,
+            _ => unreachable!("Error")
+        }
+    }
     pub fn input_beneficiary_id() -> String {
-        Input::new()
-            .with_prompt("Enter the beneficiary ID to delete this account ID")
-            .interact_text()
-            .unwrap()
+
+        let choose_beneficiary= vec![
+            "Transfer funds to the sender",
+            "Transfer funds to another recipient"
+        ];
+        println!("\n");
+        let selection_beneficiary = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Select the beneficiary account to transfer funds")
+            .items(&choose_beneficiary)
+            .default(0)
+            .interact_on_opt(&Term::stderr())
+            .unwrap();
+
+        match selection_beneficiary {
+            Some(0) => {
+                "".to_string()
+            },
+            Some(1) => {
+                Input::new()
+                    .with_prompt("Enter the beneficiary ID to delete this account ID")
+                    .interact_text()
+                    .unwrap()
+            },
+            _ => unreachable!("Error")
+        }
+
+
+        
     }
 }
