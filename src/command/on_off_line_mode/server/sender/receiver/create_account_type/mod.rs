@@ -1,3 +1,4 @@
+use near_primitives::test_utils::account_new;
 use structopt::StructOpt;
 use strum_macros::{
     Display,
@@ -11,6 +12,7 @@ use dialoguer::{
     theme::ColorfulTheme,
     console::Term
 };
+use async_recursion::async_recursion;
 
 use super::{
     ActionSubcommand,
@@ -41,5 +43,39 @@ impl From<CliCreateAccountAction> for CreateAccountAction {
         CreateAccountAction {
             next_action
         }
+    }
+}
+
+impl CreateAccountAction {
+    #[async_recursion(?Send)]
+    pub async fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("CreateAccountAction process: self:\n       {:?}", &self);
+        println!("CreateAccountAction process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
+        let action = near_primitives::transaction::Action::CreateAccount(
+            near_primitives::transaction::CreateAccountAction {}
+        );
+        let mut actions= prepopulated_unsigned_transaction.actions.clone();
+        actions.push(action);
+        let unsigned_transaction = near_primitives::transaction::Transaction {
+            actions,
+            .. prepopulated_unsigned_transaction
+        };
+        println!("unsigned_transaction:\n    {:?}", &unsigned_transaction);
+        match *self.next_action {
+            ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url).await,
+            // ActionSubcommand::CallFunction(args_function) => {},
+            // ActionSubcommand::StakeNEARTokens(args_stake) => {},
+            ActionSubcommand::CreateAccount(args_create_account) => args_create_account.process(unsigned_transaction, selected_server_url).await,
+            // ActionSubcommand::DeleteAccount(args_delete_account) => {},
+            // ActionSubcommand::AddAccessKey(args_add_access_key) => {},
+            // ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
+            ActionSubcommand::Skip(args_skip) => args_skip.process(unsigned_transaction, selected_server_url).await,
+            _ => unreachable!("Error")
+        }
+
     }
 }
