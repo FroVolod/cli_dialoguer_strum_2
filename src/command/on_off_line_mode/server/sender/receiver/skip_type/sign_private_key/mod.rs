@@ -39,12 +39,10 @@ impl SignPrivateKey {
                 public_key,
                 .. prepopulated_unsigned_transaction
             };
-            println!("unsigned_transaction:\n  {:#?}", &unsigned_transaction);
             let signature = signer_secret_key
                 .sign(unsigned_transaction.get_hash().as_ref());
             let signed_transaction =
                 near_primitives::transaction::SignedTransaction::new(signature, unsigned_transaction);
-            println!("---  Signed transaction:   --- \n   {:#?}", signed_transaction);
             let serialize_to_base64 = near_primitives::serialize::to_base64(
                     signed_transaction
                         .try_to_vec()

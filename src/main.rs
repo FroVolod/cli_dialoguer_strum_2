@@ -10,7 +10,6 @@ use command::{
 };
 
 
-
 #[derive(Debug)]
 struct Args {
     subcommand: ArgsCommand,
@@ -36,9 +35,6 @@ impl From<CliArgs> for Args {
 
 impl Args {
     async fn process(self) -> String {
-        println!("===========    Args process   ===========\n    {:?}", &self.subcommand);
-        let transaction_command = &self.subcommand;
-        println!("{:?}", &transaction_command);
         match self.subcommand {
             ArgsCommand::ConstructTransactionCommand(mode) => {
                 let unsigned_transaction = near_primitives::transaction::Transaction {
@@ -49,7 +45,7 @@ impl Args {
                     block_hash: Default::default(),
                     actions: vec![],
                 };
-                println!("!!!!!!!!!!!!  {:?}", &mode.process(unsigned_transaction).await);
+                mode.process(unsigned_transaction).await;
             },
             _ => unreachable!("Error") 
         };
@@ -57,11 +53,9 @@ impl Args {
     }
 }
 
-
 fn main() {
     let cli = CliArgs::from_args();
     let args = Args::from(cli);
-    println!("args {:#?}", args);
 
     actix::System::builder()
     .build()

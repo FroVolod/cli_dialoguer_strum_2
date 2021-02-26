@@ -66,6 +66,7 @@ impl SignTransaction {
         }
     }
     pub fn choose_sign_option() -> Self {
+        println!();
         let sign_options = vec![
             "Yes, I want to sign the transaction with my private key",
             "No, I want to construct the transaction and sign it somewhere else",

@@ -1,22 +1,12 @@
 use structopt::StructOpt;
 use std::str::FromStr;
-use strum_macros::{
-    Display,
-    EnumString,
-    EnumVariantNames,
-};
-use strum::VariantNames;
 use dialoguer::{
-    Select,
     Input,
-    theme::ColorfulTheme,
-    console::Term
 };
 use async_recursion::async_recursion;
 
 use super::{
     ActionSubcommand,
-    CliActionSubcommand,
     CliActionSkipSubcommand
 };
 
@@ -76,7 +66,6 @@ impl DeleteAccessKeyAction {
             actions,
             .. prepopulated_unsigned_transaction
         };
-        println!("unsigned_transaction:\n    {:?}", &unsigned_transaction);
         match *self.next_action {
             ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},

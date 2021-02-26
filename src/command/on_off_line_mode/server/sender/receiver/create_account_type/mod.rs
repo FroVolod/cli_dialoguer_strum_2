@@ -1,22 +1,8 @@
-use near_primitives::test_utils::account_new;
 use structopt::StructOpt;
-use strum_macros::{
-    Display,
-    EnumString,
-    EnumVariantNames,
-};
-use strum::VariantNames;
-use dialoguer::{
-    Select,
-    Input,
-    theme::ColorfulTheme,
-    console::Term
-};
 use async_recursion::async_recursion;
 
 use super::{
     ActionSubcommand,
-    CliActionSubcommand,
     CliActionSkipSubcommand
 };
 
@@ -65,8 +51,6 @@ impl CreateAccountAction {
             actions,
             .. prepopulated_unsigned_transaction
         };
-        println!("unsigned_transaction:\n    {:?}", &unsigned_transaction);
-        // let public_key = "ed25519:7FmDRADa1v4BcLiiR9MPPdmWQp3Um1iPdAYATvBY1YzS".to_string(); // Предусмотреть доставку public_key
         match *self.next_action {
             ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},

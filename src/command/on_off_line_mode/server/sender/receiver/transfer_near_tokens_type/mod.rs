@@ -24,7 +24,6 @@ impl TransferNEARTokensAction {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
-        // public_key_string: String,
     ) {
         println!("TransferNEARTokens process: self:\n       {:?}", &self);
         println!("TransferNEARTokens process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
@@ -42,7 +41,6 @@ impl TransferNEARTokensAction {
             actions,
             .. prepopulated_unsigned_transaction
         };
-        println!("unsigned_transaction:\n    {:?}", &unsigned_transaction);
         match *self.next_action {
             ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},

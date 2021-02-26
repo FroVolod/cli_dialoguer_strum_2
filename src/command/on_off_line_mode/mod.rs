@@ -39,21 +39,11 @@ impl OnOffLineMode {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) {
-        println!("OnOffLineMode - prepopulated_unsigned_transaction :\n      {:?}", prepopulated_unsigned_transaction);
         match self.mode {
             Mode::Online(online_args) => {
-                println!("Online args:  {:?}", &online_args);                
-                let nonce = online_args.nonce.clone();
-                let block_hash = online_args.block_hash.clone();
-                let unsigned_transaction = near_primitives::transaction::Transaction {                    
-                    block_hash,
-                    nonce,
-                    .. prepopulated_unsigned_transaction
-                };
-                online_args.process(unsigned_transaction).await
+                online_args.process(prepopulated_unsigned_transaction).await
             },
             Mode::Offline(offline_args) => {
-                println!("Offline args:  {:?}", &offline_args);
                 let nonce = offline_args.nonce.clone();
                 let block_hash = offline_args.block_hash.clone();
                 let unsigned_transaction = near_primitives::transaction::Transaction {                    
@@ -89,7 +79,7 @@ impl Mode {
             "Yes, I keep it simple",
             "No, I want to work in no-network (air-gapped) environment"
         ];
-        println!("\n");
+        println!();
         let select_mode = Select::with_theme(&ColorfulTheme::default())
             .with_prompt(
                 "To construct a transaction you will need to provide information about sender (signer) and receiver accounts, and actions that needs to be performed.
@@ -101,12 +91,8 @@ impl Mode {
             .unwrap();
         match select_mode {
             Some(0) => {
-                let nonce: u64 = 55;
-                let block_hash: CryptoHash = Default::default();        
                 let selected_server: SelectServer = SelectServer::select_server();
                 Mode::Online(OnlineArgs {
-                        nonce,
-                        block_hash,
                         selected_server
                     }) 
             },
@@ -144,30 +130,22 @@ pub struct CliOfflineArgs {
 
 #[derive(Debug)]
 pub struct OnlineArgs {
-    nonce: u64,
-    block_hash: near_primitives::hash::CryptoHash,
     selected_server: SelectServer
 }
 
 #[derive(Debug, StructOpt)]
 pub struct CliOnlineArgs {
-    nonce: Option<u64>,
-    block_hash: Option<crate::common::BlobAsBase58String<CryptoHash>>,
     #[structopt(subcommand)]
     selected_server: Option<CliSelectServer> 
 }
 
 impl From<CliOnlineArgs> for OnlineArgs {
     fn from(item: CliOnlineArgs) -> Self {
-        let nonce: u64 = 55;
-        let block_hash: CryptoHash = Default::default();
         let selected_server = match item.selected_server {
             Some(cli_selected_server) => SelectServer::from(cli_selected_server),
             None => SelectServer::select_server()
         };
         OnlineArgs {
-            nonce,
-            block_hash,
             selected_server
         }
     }

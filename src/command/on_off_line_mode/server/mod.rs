@@ -63,7 +63,6 @@ pub enum CliSendFrom {
 
 impl CliServer {
     pub fn into_server(self, url: String) -> Server {
-        println!("=================================== item.url  {:?}", self);
         let send_from: SendFrom = match self.send_from {
             Some(cli_send_from) => SendFrom::from(cli_send_from),
             None => SendFrom::send_from()
@@ -77,7 +76,6 @@ impl CliServer {
 
 impl CliCustomServer {
     pub fn into_server(self) -> Server {
-        println!("=================================== item.url  {:?}", self);
         let url = match self.url {
             Some(url) => url,
             None => {

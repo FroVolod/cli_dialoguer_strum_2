@@ -40,6 +40,7 @@ impl From<CliCommand> for ArgsCommand {
 
 impl ArgsCommand {
     pub fn choose_command() -> Self {
+        println!();
         let commands= Self::VARIANTS;
         let selection = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Choose your action")
@@ -50,11 +51,9 @@ impl ArgsCommand {
 
         match selection {
             Some(0) => {
-                println!("============== {:?}", commands[0]);
                 Self::ConstructTransactionCommand(OnOffLineMode{mode: Mode::choose_mode()})
             },
             Some(1) => {
-                println!("============== {:?}", commands[1]);
                 Self::Utils
             },
             _ => unreachable!("Error")

@@ -39,7 +39,6 @@ impl Sender {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
-        println!("Sender process:\n    {:?}", &self);
         let unsigned_transaction = near_primitives::transaction::Transaction {
             signer_id: self.account_id.clone(),
             .. prepopulated_unsigned_transaction
@@ -47,6 +46,7 @@ impl Sender {
         self.send_to.process(unsigned_transaction, selected_server_url).await;
     }
     pub fn input_account_id() -> String {
+        println!();
         Input::new()
             .with_prompt("What is the account ID of the sender?")
             .interact_text()
@@ -77,8 +77,6 @@ impl SendTo {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
-        println!("SendTo process: self:\n       {:?}", &self);
-        println!("SendTo process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
         match self {
             SendTo::Receiver(receiver) => receiver.process(prepopulated_unsigned_transaction, selected_server_url).await
         }

@@ -1,6 +1,3 @@
-use std::str::FromStr;
-
-use slip10::BIP32Path;
 use structopt::StructOpt;
 use strum_macros::{
     EnumVariantNames,
@@ -47,8 +44,8 @@ use delete_account_type::{
     CliDeleteAccountAction
 };
 // use crate::command::on_off_line_mode::server::sender::receiver::add_access_key_type::full_access_type::FullAccessType;
-use crate::utils_subcommand::generate_keypair_subcommand;
-use add_access_key_type::full_access_type::FullAccessType;
+// use crate::utils_subcommand::generate_keypair_subcommand;
+// use add_access_key_type::full_access_type::FullAccessType;
 
 
 #[derive(Debug)]
@@ -99,9 +96,6 @@ impl ActionSubcommand {
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
     ) {
-        println!("ActionSubcommand process: self:\n       {:?}", &self);
-        println!("ActionSubcommand process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
-        // let public_key_string = generate_keypair_subcommand::GenerateKeypair::process(generate_keypair_subcommand::GenerateKeypair::default()).await;
         match self {
             ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(prepopulated_unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},
@@ -115,6 +109,7 @@ impl ActionSubcommand {
         }
     }
     pub fn choose_action_command() -> Self {
+        println!();
         let action_subcommands= ActionSubcommand::VARIANTS;
         let select_action_subcommand = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Select an action that you want to add to the action:")
@@ -151,12 +146,10 @@ impl ActionSubcommand {
                 let public_key: String = AddAccessKeyAction::input_public_key();
                 let nonce: near_primitives::types::Nonce = AddAccessKeyAction::input_nonce();
                 let permission: AccessKeyPermission = AccessKeyPermission::choose_permission();
-                // let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
                 ActionSubcommand::AddAccessKey(AddAccessKeyAction {
                     public_key,
                     nonce,
-                    permission//: near_primitives::account::AccessKeyPermission::from(permission),
-                    // next_action
+                    permission
                 })
             },
             Some(6) => {
@@ -213,7 +206,6 @@ impl From<CliReceiver> for Receiver {
 
 impl From<CliActionSubcommand> for ActionSubcommand {
     fn from(item: CliActionSubcommand) -> Self {
-        println!("-----------  From<CliActionSubcommand> for ActionSubcommand   -----------\n   {:?}", &item);
         match item {
             CliActionSubcommand::TransferNEARTokens(cli_transfer_near_token) => {
                 let transfer_near_token: TransferNEARTokensAction = TransferNEARTokensAction::from(cli_transfer_near_token);
@@ -228,7 +220,7 @@ impl From<CliActionSubcommand> for ActionSubcommand {
                 ActionSubcommand::DeleteAccount(delete_account)
             },
             CliActionSubcommand::AddAccessKey(cli_add_access_key) => {
-                let add_access_key: AddAccessKeyAction = AddAccessKeyAction::from(cli_add_access_key); //cli_add_access_key.into_add_access_key_action();
+                let add_access_key: AddAccessKeyAction = AddAccessKeyAction::from(cli_add_access_key);
                 ActionSubcommand::AddAccessKey(add_access_key)
             },
             CliActionSubcommand::DeleteAccessKey(cli_delete_access_key) => {
@@ -247,7 +239,6 @@ impl From<CliActionSkipSubcommand> for ActionSubcommand {
                 let skip_action: SkipAction = SkipAction::from(cli_skip_action);
                 ActionSubcommand::Skip(skip_action)
             }
-
         }
     }
 }

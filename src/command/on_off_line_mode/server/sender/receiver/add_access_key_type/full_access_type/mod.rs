@@ -1,36 +1,20 @@
 use structopt::StructOpt;
-use std::{str::FromStr, vec};
-use strum_macros::{
-    Display,
-    EnumString,
-    EnumVariantNames,
-};
-use strum::VariantNames;
-use dialoguer::{
-    Select,
-    Input,
-    theme::ColorfulTheme,
-    console::Term
-};
+use std::str::FromStr;
 use async_recursion::async_recursion;
 
 use crate::command::on_off_line_mode::server::sender::receiver::{
     ActionSubcommand,
-    CliActionSubcommand,
     CliActionSkipSubcommand
 };
 
 
-
 #[derive(Debug)]
 pub struct FullAccessType {
-    
     pub next_action: Box<ActionSubcommand>
 }
 
 #[derive(Debug, StructOpt)]
 pub struct CliFullAccessType {
-    
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand>
 }
@@ -51,9 +35,6 @@ impl From<CliFullAccessType> for FullAccessType {
 }
 
 impl FullAccessType {
-    fn rpc_client(&self, selected_server_url: &str) -> near_jsonrpc_client::JsonRpcClient {
-        near_jsonrpc_client::new_client(&selected_server_url)
-    }
     #[async_recursion(?Send)]
     pub async fn process(
         self,
@@ -64,14 +45,11 @@ impl FullAccessType {
     ) {
         println!("FullAccessType process: self:\n       {:?}", &self);
         println!("FullAccessType process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
-        println!("FullAccessType process: public_key:\n       {:?}", &public_key_string);
-        println!("FullAccessType process: permission:\n       {:?}", &self.next_action);
         let public_key = near_crypto::PublicKey::from_str(&public_key_string).unwrap();
         let access_key: near_primitives::account::AccessKey = near_primitives::account::AccessKey {
                 nonce,
                 permission: near_primitives::account::AccessKeyPermission::FullAccess
             };
-        println!("Access key:   ------------  {:?}", access_key);
         let action = near_primitives::transaction::Action::AddKey(
             near_primitives::transaction::AddKeyAction {
                 public_key,
@@ -84,7 +62,6 @@ impl FullAccessType {
             actions,
             .. prepopulated_unsigned_transaction
         };
-        println!("unsigned_transaction:\n    {:?}", &unsigned_transaction);
         match *self.next_action {
             ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},
@@ -97,5 +74,4 @@ impl FullAccessType {
             _ => unreachable!("Error")
         }
     }
-    
 }

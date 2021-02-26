@@ -65,20 +65,17 @@ impl SelectServer {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) {
-        println!("SelectServer process:  self:\n         {:?}", &self);
-        println!("SelectServer process:  prepopulated_unsigned_transaction:\n         {:?}", prepopulated_unsigned_transaction);
         match self {
             SelectServer::Testnet(server) => {
-                println!("server url:   {:?}", &server.url);
                 server.process(prepopulated_unsigned_transaction).await;
             },
-            SelectServer::Mainnet(server) => {},
-            SelectServer::Betanet(server) => {},
-            SelectServer::Custom(server) => {},
+            SelectServer::Mainnet(_server) => {},
+            SelectServer::Betanet(_server) => {},
+            SelectServer::Custom(_server) => {},
         }
     }
     pub fn select_server() -> Self {
-        println!("Works select server!");
+        println!();
         let servers= SelectServer::VARIANTS;
         let select_server = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Select NEAR protocol RPC server:")

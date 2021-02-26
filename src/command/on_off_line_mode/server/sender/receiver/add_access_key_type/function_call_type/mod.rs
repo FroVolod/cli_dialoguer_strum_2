@@ -2,12 +2,6 @@ use structopt::StructOpt;
 use std::{str::FromStr, vec};
 use std::num::ParseIntError;
 
-use strum_macros::{
-    Display,
-    EnumString,
-    EnumVariantNames,
-};
-use strum::VariantNames;
 use dialoguer::{
     Select,
     Input,
@@ -19,10 +13,8 @@ use async_recursion::async_recursion;
 
 use crate::command::on_off_line_mode::server::sender::receiver::{
     ActionSubcommand,
-    CliActionSubcommand,
     CliActionSkipSubcommand
 };
-
 
 
 #[derive(Debug)]
@@ -37,7 +29,9 @@ pub struct FunctionCallType {
 pub struct  CliFunctionCallType {
     #[structopt(long)]
     allowance: Option<NearBalance>,
+    #[structopt(long)]
     receiver_id: Option<near_primitives::types::AccountId>,
+    #[structopt(long)]
     method_names: Option<String>,
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand>
@@ -84,9 +78,6 @@ impl From<CliFunctionCallType> for FunctionCallType {
 }
 
 impl FunctionCallType {
-    fn rpc_client(&self, selected_server_url: &str) -> near_jsonrpc_client::JsonRpcClient {
-        near_jsonrpc_client::new_client(&selected_server_url)
-    }
     #[async_recursion(?Send)]
     pub async fn process(
         self,
@@ -97,8 +88,6 @@ impl FunctionCallType {
     ) {
         println!("FunctionCallType process: self:\n       {:?}", &self);
         println!("FunctionCallType process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
-        println!("FunctionCallType process: public_key:\n       {:?}", &public_key_string);
-        println!("FunctionCallType process: permission:\n       {:?}", &self.next_action);
         let public_key = near_crypto::PublicKey::from_str(&public_key_string).unwrap();
         let access_key: near_primitives::account::AccessKey = near_primitives::account::AccessKey {
                 nonce,
@@ -110,7 +99,6 @@ impl FunctionCallType {
                     }
                 )
             };
-        println!("Access key:   ------------  {:?}", access_key);
         let action = near_primitives::transaction::Action::AddKey(
             near_primitives::transaction::AddKeyAction {
                 public_key,
@@ -123,7 +111,6 @@ impl FunctionCallType {
             actions,
             .. prepopulated_unsigned_transaction
         };
-        println!("unsigned_transaction:\n    {:?}", &unsigned_transaction);
         match *self.next_action {
             ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},
@@ -137,7 +124,7 @@ impl FunctionCallType {
         }
     }
     pub fn input_method_names() -> Vec<String> {
-
+        println!();
         let choose_input = vec![
             "Yes, I want to input a list of method names that can be used",
             "No, I don't to input a list of method names that can be used"
@@ -164,13 +151,9 @@ impl FunctionCallType {
             Some(1) => vec![],
             _ => unreachable!("Error")
         }
-
-
-
-        
-        
     }
     pub fn input_allowance() -> Option<near_primitives::types::Balance> {
+        println!();
         let choose_input = vec![
             "Yes, I want to input allowance for receiver ID",
             "No, I don't to input allowance for receiver ID"
@@ -199,13 +182,13 @@ impl FunctionCallType {
         
     }
     pub fn input_receiver_id() -> near_primitives::types::AccountId {
+        println!();
         Input::new()
             .with_prompt("Enter a receiver to use by this access key to pay for function call gas and transaction fees.")
             .interact_text()
             .unwrap()
     }
 }
-
 
 #[derive(Debug)]
 pub struct NearBalance (u128);
