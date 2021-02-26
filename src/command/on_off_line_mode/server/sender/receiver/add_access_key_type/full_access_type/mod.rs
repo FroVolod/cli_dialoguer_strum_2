@@ -1,5 +1,5 @@
 use structopt::StructOpt;
-use std::str::FromStr;
+use std::{str::FromStr, vec};
 use strum_macros::{
     Display,
     EnumString,
@@ -14,60 +14,68 @@ use dialoguer::{
 };
 use async_recursion::async_recursion;
 
-use super::{
+use crate::command::on_off_line_mode::server::sender::receiver::{
     ActionSubcommand,
     CliActionSubcommand,
     CliActionSkipSubcommand
 };
 
 
+
 #[derive(Debug)]
-pub struct DeleteAccessKeyAction {
-    pub public_key: String,
+pub struct FullAccessType {
+    
     pub next_action: Box<ActionSubcommand>
 }
 
 #[derive(Debug, StructOpt)]
-pub struct CliDeleteAccessKeyAction {
-    #[structopt(long)]
-    public_key: Option<String>,
+pub struct CliFullAccessType {
+    
     #[structopt(subcommand)]
     next_action: Option<CliActionSkipSubcommand>
 }
 
-impl From<CliDeleteAccessKeyAction> for DeleteAccessKeyAction {
-    fn from(item: CliDeleteAccessKeyAction) -> Self {
-        let public_key: String = match item.public_key {
-            Some(cli_public_key) => cli_public_key,
-            None => DeleteAccessKeyAction::input_public_key()
-        };
+impl From<CliFullAccessType> for FullAccessType {
+    fn from(item: CliFullAccessType) -> Self {
+        
         let next_action: Box<ActionSubcommand> = match item.next_action {
             Some(cli_skip_action) => {
                 Box::new(ActionSubcommand::from(cli_skip_action))
             },
             None => Box::new(ActionSubcommand::choose_action_command()) 
         };
-        DeleteAccessKeyAction {
-            public_key,
-            next_action
+        FullAccessType {
+            next_action,
         }
     }
 }
 
-impl DeleteAccessKeyAction {
+impl FullAccessType {
+    fn rpc_client(&self, selected_server_url: &str) -> near_jsonrpc_client::JsonRpcClient {
+        near_jsonrpc_client::new_client(&selected_server_url)
+    }
     #[async_recursion(?Send)]
     pub async fn process(
         self,
+        nonce: near_primitives::types::Nonce,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
-        // public_key_string: String,
+        public_key_string: String,
     ) {
-        println!("DeleteAccessKeyAction process: self:\n       {:?}", &self);
-        println!("DeleteAccessKeyAction process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
-        let public_key = near_crypto::PublicKey::from_str(&self.public_key).unwrap();
-        let action = near_primitives::transaction::Action::DeleteKey(
-            near_primitives::transaction::DeleteKeyAction {
-                public_key
+        println!("FullAccessType process: self:\n       {:?}", &self);
+        println!("FullAccessType process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
+        println!("FullAccessType process: public_key:\n       {:?}", &public_key_string);
+        println!("FullAccessType process: permission:\n       {:?}", &self.next_action);
+        let public_key = near_crypto::PublicKey::from_str(&public_key_string).unwrap();
+        let access_key: near_primitives::account::AccessKey = near_primitives::account::AccessKey {
+                nonce,
+                permission: near_primitives::account::AccessKeyPermission::FullAccess
+            };
+        println!("Access key:   ------------  {:?}", access_key);
+        let action = near_primitives::transaction::Action::AddKey(
+            near_primitives::transaction::AddKeyAction {
+                public_key,
+                access_key
             }
         );
         let mut actions= prepopulated_unsigned_transaction.actions.clone();
@@ -83,17 +91,11 @@ impl DeleteAccessKeyAction {
             // ActionSubcommand::StakeNEARTokens(args_stake) => {},
             ActionSubcommand::CreateAccount(args_create_account) => args_create_account.process(unsigned_transaction, selected_server_url).await,
             ActionSubcommand::DeleteAccount(args_delete_account) => args_delete_account.process(unsigned_transaction, selected_server_url).await,
-            ActionSubcommand::AddAccessKey(args_add_public_key) => args_add_public_key.process(unsigned_transaction, selected_server_url, "".to_string()).await,
+            ActionSubcommand::AddAccessKey(args_add_access_key) => args_add_access_key.process(unsigned_transaction, selected_server_url, public_key_string).await,
             ActionSubcommand::DeleteAccessKey(args_delete_access_key) => args_delete_access_key.process(unsigned_transaction, selected_server_url).await,
             ActionSubcommand::Skip(args_skip) => args_skip.process(unsigned_transaction, selected_server_url).await,
             _ => unreachable!("Error")
         }
-
     }
-    pub fn input_public_key() -> String {
-        Input::new()
-            .with_prompt("Enter the access key to remove it")
-            .interact_text()
-            .unwrap()
-    }
+    
 }

@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use slip10::BIP32Path;
 use structopt::StructOpt;
 use strum_macros::{
     EnumVariantNames,
@@ -35,14 +38,17 @@ use delete_access_key_type::{
 mod add_access_key_type;
 use add_access_key_type::{
     AddAccessKeyAction,
-    CliAddAccessKeyAction
+    CliAddAccessKeyAction,
+    AccessKeyPermission,
 };
 mod delete_account_type;
 use delete_account_type::{
     DeleteAccountAction,
     CliDeleteAccountAction
 };
-
+// use crate::command::on_off_line_mode::server::sender::receiver::add_access_key_type::full_access_type::FullAccessType;
+use crate::utils_subcommand::generate_keypair_subcommand;
+use add_access_key_type::full_access_type::FullAccessType;
 
 
 #[derive(Debug)]
@@ -95,15 +101,16 @@ impl ActionSubcommand {
     ) {
         println!("ActionSubcommand process: self:\n       {:?}", &self);
         println!("ActionSubcommand process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
+        // let public_key_string = generate_keypair_subcommand::GenerateKeypair::process(generate_keypair_subcommand::GenerateKeypair::default()).await;
         match self {
             ActionSubcommand::TransferNEARTokens(args_transfer) => args_transfer.process(prepopulated_unsigned_transaction, selected_server_url).await,
             // ActionSubcommand::CallFunction(args_function) => {},
             // ActionSubcommand::StakeNEARTokens(args_stake) => {},
             ActionSubcommand::CreateAccount(args_create_account) => args_create_account.process(prepopulated_unsigned_transaction, selected_server_url).await,
             ActionSubcommand::DeleteAccount(args_delete_account) => args_delete_account.process(prepopulated_unsigned_transaction, selected_server_url).await,
-            // ActionSubcommand::AddAccessKey(args_add_access_key) => {},
-            // ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
-            // ActionSubcommand::Skip(args_skip) => {},
+            ActionSubcommand::AddAccessKey(args_add_access_key) => args_add_access_key.process(prepopulated_unsigned_transaction, selected_server_url, "".to_string()).await,
+            ActionSubcommand::DeleteAccessKey(args_delete_access_key) => args_delete_access_key.process(prepopulated_unsigned_transaction, selected_server_url).await,
+            ActionSubcommand::Skip(args_skip) => args_skip.process(prepopulated_unsigned_transaction, selected_server_url).await,
             _ => unreachable!("Error")
         }
     }
@@ -141,16 +148,22 @@ impl ActionSubcommand {
                 })
             },
             Some(5) => {
-                let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
+                let public_key: String = AddAccessKeyAction::input_public_key();
+                let nonce: near_primitives::types::Nonce = AddAccessKeyAction::input_nonce();
+                let permission: AccessKeyPermission = AccessKeyPermission::choose_permission();
+                // let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
                 ActionSubcommand::AddAccessKey(AddAccessKeyAction {
-                    next_action
+                    public_key,
+                    nonce,
+                    permission//: near_primitives::account::AccessKeyPermission::from(permission),
+                    // next_action
                 })
             },
             Some(6) => {
-                let access_key: String = DeleteAccessKeyAction::input_access_key();
+                let public_key: String = DeleteAccessKeyAction::input_public_key();
                 let next_action: Box<ActionSubcommand> = Box::new(ActionSubcommand::choose_action_command());
                 ActionSubcommand::DeleteAccessKey(DeleteAccessKeyAction {
-                    access_key,
+                    public_key,
                     next_action
                 })
             },
@@ -215,7 +228,7 @@ impl From<CliActionSubcommand> for ActionSubcommand {
                 ActionSubcommand::DeleteAccount(delete_account)
             },
             CliActionSubcommand::AddAccessKey(cli_add_access_key) => {
-                let add_access_key: AddAccessKeyAction = AddAccessKeyAction::from(cli_add_access_key);
+                let add_access_key: AddAccessKeyAction = AddAccessKeyAction::from(cli_add_access_key); //cli_add_access_key.into_add_access_key_action();
                 ActionSubcommand::AddAccessKey(add_access_key)
             },
             CliActionSubcommand::DeleteAccessKey(cli_delete_access_key) => {

@@ -59,6 +59,7 @@ impl DeleteAccountAction {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
         selected_server_url: String,
+        // public_key_string: String,
     ) {
         println!("DeleteAccountAction process: self:\n       {:?}", &self);
         println!("DeleteAccountAction process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
@@ -86,40 +87,17 @@ impl DeleteAccountAction {
             // ActionSubcommand::StakeNEARTokens(args_stake) => {},
             ActionSubcommand::CreateAccount(args_create_account) => args_create_account.process(unsigned_transaction, selected_server_url).await,
             ActionSubcommand::DeleteAccount(args_delete_account) => args_delete_account.process(unsigned_transaction, selected_server_url).await,
-            // ActionSubcommand::AddAccessKey(args_add_access_key) => {},
-            // ActionSubcommand::DeleteAccessKey(args_delete_access_key) => {},
+            ActionSubcommand::AddAccessKey(args_add_access_key) => args_add_access_key.process(unsigned_transaction, selected_server_url, "".to_string()).await,
+            ActionSubcommand::DeleteAccessKey(args_delete_access_key) => args_delete_access_key.process(unsigned_transaction, selected_server_url).await,
             ActionSubcommand::Skip(args_skip) => args_skip.process(unsigned_transaction, selected_server_url).await,
             _ => unreachable!("Error")
         }
     }
     pub fn input_beneficiary_id() -> String {
-
-        let choose_beneficiary= vec![
-            "Transfer funds to the sender",
-            "Transfer funds to another recipient"
-        ];
-        println!("\n");
-        let selection_beneficiary = Select::with_theme(&ColorfulTheme::default())
-            .with_prompt("Select the beneficiary account to transfer funds")
-            .items(&choose_beneficiary)
-            .default(0)
-            .interact_on_opt(&Term::stderr())
-            .unwrap();
-
-        match selection_beneficiary {
-            Some(0) => {
-                "".to_string()
-            },
-            Some(1) => {
-                Input::new()
-                    .with_prompt("Enter the beneficiary ID to delete this account ID")
-                    .interact_text()
-                    .unwrap()
-            },
-            _ => unreachable!("Error")
+        println!();
+        Input::new()
+            .with_prompt("Enter the beneficiary ID to delete this account ID")
+            .interact_text()
+            .unwrap()
         }
-
-
-        
-    }
 }
