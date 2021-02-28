@@ -5,12 +5,12 @@ use dialoguer::{
     console::Term
 };
 
-mod sign_private_key;
+pub mod sign_private_key;
 use sign_private_key::{
     SignPrivateKey,
     CliSignPrivateKey
 };
-mod sign_alternative;
+pub mod sign_alternative;
 use sign_alternative::{
     SignAlternative,
     CliSignAlternative

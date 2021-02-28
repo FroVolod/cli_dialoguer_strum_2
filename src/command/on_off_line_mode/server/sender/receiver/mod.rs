@@ -242,3 +242,41 @@ impl From<CliActionSkipSubcommand> for ActionSubcommand {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use near_primitives::hash::CryptoHash;
+    use std::str::FromStr;
+    use super::*;
+
+    #[test]
+    fn test_receiver_process() {
+        let my_self = Receiver {
+            account_id: "qwe.testnet".to_string(),
+            transaction_subcommand: ActionSubcommand::CreateAccount(
+                CreateAccountAction {
+                    next_action: Box::new(ActionSubcommand::Skip(
+                        SkipAction {
+                            sign_option: SignTransaction::SignAlternative(skip_type::sign_alternative::SignAlternative{
+                                key_chain: "qweqwe".to_string()
+                            })
+                        }
+                    ))
+                }
+            )
+            
+        };
+        let prepopulated_unsigned_transaction: near_primitives::transaction::Transaction = near_primitives::transaction::Transaction {
+            signer_id: "volodymyr.testnet".to_string(),
+            public_key: near_crypto::PublicKey::from_str("ed25519:7FmDRADa1v4BcLiiR9MPPdmWQp3Um1iPdAYATvBY1YzS").unwrap(),
+            nonce: 55,
+            receiver_id: "qwe.testnet".to_string(),
+            block_hash: crate::common::BlobAsBase58String::<CryptoHash>::from_str("F2KwJ2rBE5LfuPFPRTYtu243hTniYggfC6P24WQVfZnx").unwrap().into_inner(),
+            actions: vec![],
+        };
+        let selected_server_url: String = "https://rpc.testnet.near.org".to_string();
+        Receiver::process(my_self, prepopulated_unsigned_transaction, selected_server_url);
+
+    }
+}
+
