@@ -44,14 +44,7 @@ impl OnOffLineMode {
                 online_args.process(prepopulated_unsigned_transaction).await
             },
             Mode::Offline(offline_args) => {
-                let nonce = offline_args.nonce.clone();
-                let block_hash = offline_args.block_hash.clone();
-                let unsigned_transaction = near_primitives::transaction::Transaction {                    
-                    block_hash,
-                    nonce,
-                    .. prepopulated_unsigned_transaction
-                };
-                offline_args.process(unsigned_transaction).await
+                offline_args.process(prepopulated_unsigned_transaction).await
             },
         }
     }
@@ -178,9 +171,17 @@ impl OfflineArgs {
         self,
         prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
     ) {
-        println!("OfflineArgs process:\n        {:?}", prepopulated_unsigned_transaction);
-        let selected_server_url = "".to_string(); 
-        self.send_from.process(prepopulated_unsigned_transaction, selected_server_url).await;
+        println!("OfflineArgs process self:\n        {:?}", &self);
+        println!("OfflineArgs process prepopulated_unsigned_transaction:\n        {:?}", prepopulated_unsigned_transaction);
+        let selected_server_url = "".to_string();
+        let nonce = self.nonce.clone();
+        let block_hash = self.block_hash.clone();
+        let unsigned_transaction = near_primitives::transaction::Transaction {                    
+            block_hash,
+            nonce,
+            .. prepopulated_unsigned_transaction
+        };
+        self.send_from.process(unsigned_transaction, selected_server_url).await;
     }
     fn input_nonce() -> u64 {
         Input::new()

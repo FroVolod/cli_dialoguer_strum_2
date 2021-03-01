@@ -52,12 +52,7 @@ impl DeleteAccountAction {
     ) {
         println!("DeleteAccountAction process: self:\n       {:?}", &self);
         println!("DeleteAccountAction process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
-        let beneficiary_id: String =
-            if let true = self.beneficiary_id.is_empty() {
-                prepopulated_unsigned_transaction.signer_id.clone()
-            } else {
-                self.beneficiary_id.clone()
-            };
+        let beneficiary_id: String = self.beneficiary_id.clone();
         let action = near_primitives::transaction::Action::DeleteAccount(
             near_primitives::transaction::DeleteAccountAction {
                 beneficiary_id

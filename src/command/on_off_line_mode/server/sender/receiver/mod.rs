@@ -249,8 +249,8 @@ mod tests {
     use std::str::FromStr;
     use super::*;
 
-    #[test]
-    fn test_receiver_process() {
+    #[actix_rt::test]
+    async fn test_receiver_process() {
         let my_self = Receiver {
             account_id: "qwe.testnet".to_string(),
             transaction_subcommand: ActionSubcommand::CreateAccount(
@@ -275,7 +275,7 @@ mod tests {
             actions: vec![],
         };
         let selected_server_url: String = "https://rpc.testnet.near.org".to_string();
-        Receiver::process(my_self, prepopulated_unsigned_transaction, selected_server_url);
+        Receiver::process(my_self, prepopulated_unsigned_transaction, selected_server_url).await;
 
     }
 }

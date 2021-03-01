@@ -17,6 +17,7 @@ derive_more = "0.99.9"
 async-recursion = "0.3.2"
 
 actix = "0.9"
+actix-rt = "1"
 actix-web = { version = "2", features = [ "openssl" ] }
 openssl-probe = { version = "0.1.2" }
 
