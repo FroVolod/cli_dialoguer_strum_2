@@ -41,14 +41,16 @@ impl From<CliCommand> for ArgsCommand {
 impl ArgsCommand {
     pub fn choose_command() -> Self {
         println!();
-        let commands= Self::VARIANTS;
         let selection = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Choose your action")
-            .items(&commands)
+            .item("ConstructTransactionCommand")
+            .item("Utils")
             .default(0)
             .interact_on_opt(&Term::stderr())
             .unwrap();
-
+        println!("------------  {:?}", &selection);
+        // let ee = commands.binary_search(&"ConstructTransactionCommand").unwrap();
+        // println!("    ee    {}", ee);
         match selection {
             Some(0) => {
                 Self::ConstructTransactionCommand(OnOffLineMode{mode: Mode::choose_mode()})
@@ -56,6 +58,9 @@ impl ArgsCommand {
             Some(1) => {
                 Self::Utils
             },
+            // Some(commands.binary_search(&"ConstructTransactionCommand").unwrap()) => {
+            //     Self::ConstructTransactionCommand(OnOffLineMode{mode: Mode::choose_mode()})
+            // },
             _ => unreachable!("Error")
         }
     }

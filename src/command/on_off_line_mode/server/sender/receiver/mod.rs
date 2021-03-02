@@ -10,36 +10,32 @@ use dialoguer::{
     console::Term
 };
 
-mod transfer_near_tokens_type;
-use transfer_near_tokens_type::{
+mod transaction_actions;
+use transaction_actions::transfer_near_tokens_type::{
     TransferNEARTokensAction,
     CliTransferNEARTokensAction,
     NearBalance
 };
-mod skip_type;
-use skip_type::{
+mod sign_transaction;
+use sign_transaction::{
     SignTransaction,
-    SkipAction,
-    CliSkipAction
+    CliSignTransaction
 };
-mod create_account_type;
-use create_account_type::{
+
+use transaction_actions::create_account_type::{
     CreateAccountAction,
     CliCreateAccountAction
 };
-mod delete_access_key_type;
-use delete_access_key_type::{
+use transaction_actions::delete_access_key_type::{
     DeleteAccessKeyAction,
     CliDeleteAccessKeyAction
 };
-mod add_access_key_type;
-use add_access_key_type::{
+use transaction_actions::add_access_key_type::{
     AddAccessKeyAction,
     CliAddAccessKeyAction,
     AccessKeyPermission,
 };
-mod delete_account_type;
-use delete_account_type::{
+use transaction_actions::delete_account_type::{
     DeleteAccountAction,
     CliDeleteAccountAction
 };
@@ -50,7 +46,7 @@ use delete_account_type::{
 
 #[derive(Debug)]
 pub struct Receiver {
-    pub account_id: String,
+    pub receiver_account_id: String,
     pub transaction_subcommand: ActionSubcommand
 }
 
@@ -68,7 +64,7 @@ pub enum ActionSubcommand {
 
 #[derive(Debug, StructOpt)]
 pub struct CliReceiver {
-    account_id: Option<String>,
+    receiver_account_id: Option<String>,
     #[structopt(subcommand)]
     transaction_subcommand: Option<CliActionSubcommand> 
 }
@@ -174,12 +170,12 @@ impl Receiver {
     ) {
         println!("Receiver process: self:\n       {:?}", &self);
         let unsigned_transaction = near_primitives::transaction::Transaction {
-            receiver_id: self.account_id.clone(),
+            receiver_id: self.receiver_account_id.clone(),
             .. prepopulated_unsigned_transaction
         };
         self.transaction_subcommand.process(unsigned_transaction, selected_server_url).await;
     }
-    pub fn input_account_id() -> String {
+    pub fn input_receiver_account_id() -> String {
         Input::new()
             .with_prompt("What is the account ID of the receiver?")
             .interact_text()
@@ -189,16 +185,16 @@ impl Receiver {
 
 impl From<CliReceiver> for Receiver {
     fn from(item: CliReceiver) -> Self {
-        let account_id: String = match item.account_id {
-            Some(cli_account_id) => cli_account_id,
-            None => Receiver::input_account_id()
+        let receiver_account_id: String = match item.receiver_account_id {
+            Some(cli_receiver_account_id) => cli_receiver_account_id,
+            None => Receiver::input_receiver_account_id()
         };
         let transaction_subcommand: ActionSubcommand = match item.transaction_subcommand {
             Some(cli_action_subcommand) => ActionSubcommand::from(cli_action_subcommand),
             None => ActionSubcommand::choose_action_command()
         };
         Receiver {
-            account_id,
+            receiver_account_id,
             transaction_subcommand
         }
     }
@@ -252,12 +248,12 @@ mod tests {
     #[actix_rt::test]
     async fn test_receiver_process() {
         let my_self = Receiver {
-            account_id: "qwe.testnet".to_string(),
+            receiver_account_id: "qwe.testnet".to_string(),
             transaction_subcommand: ActionSubcommand::CreateAccount(
                 CreateAccountAction {
                     next_action: Box::new(ActionSubcommand::Skip(
                         SkipAction {
-                            sign_option: SignTransaction::SignAlternative(skip_type::sign_alternative::SignAlternative{
+                            sign_option: SignTransaction::SignAlternative(sign_transaction::sign_alternative::SignAlternative{
                                 key_chain: "qweqwe".to_string()
                             })
                         }
@@ -280,3 +276,35 @@ mod tests {
     }
 }
 
+#[derive(Debug)]
+pub struct SkipAction {
+    pub sign_option: SignTransaction
+}
+
+#[derive(Debug, StructOpt)]
+pub struct CliSkipAction {
+    #[structopt(subcommand)]
+    sign_option: Option<CliSignTransaction> 
+}
+
+impl SkipAction {
+    pub async fn process(
+        self,
+        prepopulated_unsigned_transaction: near_primitives::transaction::Transaction,
+        selected_server_url: String,
+    ) {
+        println!("Skip process:\n       {:?}", &self);
+        println!("Skip process: prepopulated_unsigned_transaction:\n       {:?}", &prepopulated_unsigned_transaction);
+        self.sign_option.process(prepopulated_unsigned_transaction, selected_server_url).await;
+    }
+}
+
+impl From<CliSkipAction> for SkipAction {
+    fn from(item: CliSkipAction) -> Self {
+        let sign_option: SignTransaction = match item.sign_option {
+            Some(cli_sign_transaction) => SignTransaction::from(cli_sign_transaction),
+            None => SignTransaction::choose_sign_option()
+        };
+        SkipAction {sign_option}
+    }
+}

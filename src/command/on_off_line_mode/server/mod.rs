@@ -109,10 +109,10 @@ impl From<CliSendFrom> for SendFrom {
 
 impl SendFrom {
     pub fn send_from() -> Self {
-        let account_id : String = Sender::input_account_id();
+        let sender_account_id : String = Sender::input_sender_account_id();
         let send_to: SendTo = SendTo::send_to();
         SendFrom::Sender(Sender {
-            account_id,
+            sender_account_id,
             send_to
         })
     }

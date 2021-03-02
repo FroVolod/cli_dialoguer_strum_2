@@ -13,7 +13,7 @@ use receiver::{
 
 #[derive(Debug)]
 pub struct Sender {
-    pub account_id: String,
+    pub sender_account_id: String,
     pub send_to: SendTo
 }
 
@@ -24,7 +24,7 @@ pub enum SendTo {
 
 #[derive(Debug, StructOpt)]
 pub struct CliSender {
-    pub account_id: Option<String>,
+    pub sender_account_id: Option<String>,
     #[structopt(subcommand)]
     send_to: Option<CliSendTo> 
 }
@@ -40,12 +40,12 @@ impl Sender {
         selected_server_url: String,
     ) {
         let unsigned_transaction = near_primitives::transaction::Transaction {
-            signer_id: self.account_id.clone(),
+            signer_id: self.sender_account_id.clone(),
             .. prepopulated_unsigned_transaction
         };
         self.send_to.process(unsigned_transaction, selected_server_url).await;
     }
-    pub fn input_account_id() -> String {
+    pub fn input_sender_account_id() -> String {
         println!();
         Input::new()
             .with_prompt("What is the account ID of the sender?")
@@ -56,16 +56,16 @@ impl Sender {
 
 impl From<CliSender> for Sender {
     fn from(item: CliSender) -> Self {
-        let account_id: String = match item.account_id {
-            Some(cli_account_id) => cli_account_id,
-            None => Sender::input_account_id()
+        let sender_account_id: String = match item.sender_account_id {
+            Some(cli_sender_account_id) => cli_sender_account_id,
+            None => Sender::input_sender_account_id()
         };
         let send_to: SendTo = match item.send_to {
             Some(cli_send_to) => SendTo::from(cli_send_to),
             None => SendTo::send_to()
         }; 
         Sender {
-            account_id,
+            sender_account_id,
             send_to
         }
     }
@@ -82,10 +82,10 @@ impl SendTo {
         }
     }
     pub fn send_to() -> Self {
-        let account_id: String = Receiver::input_account_id();
+        let receiver_account_id: String = Receiver::input_receiver_account_id();
         let transaction_subcommand: ActionSubcommand = ActionSubcommand::choose_action_command();
         SendTo::Receiver(Receiver {
-            account_id,
+            receiver_account_id,
             transaction_subcommand
         })
     }
